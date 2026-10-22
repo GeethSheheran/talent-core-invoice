@@ -1,0 +1,1 @@
+Place original logos, licensed fonts and images in the matching folders. Configure local `/brand/...` paths in config/brand.json; no fixed filename is required. PNG/JPEG logos and WOFF2/TTF fonts are supported. Missing optional assets fall back to the neutral identity. Issued snapshots preserve embedded assets. Never put private client data here.

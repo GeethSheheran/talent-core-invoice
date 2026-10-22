@@ -1,0 +1,3 @@
+-- Intentionally empty: the application starts without operational data.
+-- Isolated integration fixtures in tests/fixtures create fictional records.
+-- Never load development fixtures into a production project.
