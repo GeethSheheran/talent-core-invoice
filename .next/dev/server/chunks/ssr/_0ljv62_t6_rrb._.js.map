@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/admin/Documents/GitHub/talent-core-invoice/node_modules/next/src/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = (\n  require('../../module.compiled') as typeof import('../../module.compiled')\n).vendored['react-ssr']!.ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":"AAAAA,OAAOC,OAAO,GACZC,QAAQ,4HACRC,QAAQ,CAAC,YAAY,CAAEC,kBAAkB","ignoreList":[0]}},
+    {"offset": {"line": 9, "column": 0}, "map": {"version":3,"sources":["file:///Users/admin/Documents/GitHub/talent-core-invoice/src/app/error.tsx"],"sourcesContent":["\"use client\";\nexport default function ErrorPage({ reset }: { reset: () => void }) {\n  return (\n    <main className=\"auth card\">\n      <h1>Something went wrong</h1>\n      <p>\n        We could not complete this request. Your saved records are preserved.\n      </p>\n      <button onClick={reset}>Try again</button>\n    </main>\n  );\n}\n"],"names":["ErrorPage","reset","className","onClick"],"mappings":";;;;;AAAA;;AACe,SAASA,UAAU,EAAEC,KAAK,EAAyB;IAChE,qBACE,8OAAC;QAAKC,WAAU;;0BACd,8OAAC;0BAAG;;;;;;0BACJ,8OAAC;0BAAE;;;;;;0BAGH,8OAAC;gBAAOC,SAASF;0BAAO;;;;;;;;;;;;AAG9B"}}]
+}

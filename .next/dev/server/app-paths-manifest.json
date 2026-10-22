@@ -1,0 +1,7 @@
+{
+  "/(admin)/[collection]/page": "app/(admin)/[collection]/page.js",
+  "/(admin)/dashboard/page": "app/(admin)/dashboard/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(auth)/recover/page": "app/(auth)/recover/page.js",
+  "/page": "app/page.js"
+}
