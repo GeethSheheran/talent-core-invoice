@@ -1,0 +1,25 @@
+{
+  "node": {
+    "009e1e4f863829f2055a5e8a67a710f6eaa9042156": {
+      "workers": {
+        "app/(admin)/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/(admin)/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/(auth)/login/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/(admin)/notification-actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "exportedName": "signOut",
+      "filename": "src/app/(auth)/login/actions.ts"
+    },
+    "00af6c128b2410529942d73130a469ff5ea35bb574": {
+      "workers": {
+        "app/(admin)/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/(admin)/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/(auth)/login/actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/app/(admin)/notification-actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        }
+      },
+      "exportedName": "getNotificationPreview",
+      "filename": "src/app/(admin)/notification-actions.ts"
+    }
+  },
+  "edge": {}
+}
