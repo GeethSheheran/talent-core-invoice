@@ -3,10 +3,10 @@
 "use strict";
 
 __turbopack_context__.s([
-    "009e1e4f863829f2055a5e8a67a710f6eaa9042156",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$auth$292f$login$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["signOut"],
-    "00af6c128b2410529942d73130a469ff5ea35bb574",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$admin$292f$notification$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getNotificationPreview"]
+    "00735f55294aee365770bac920407bca0c7e1bf818",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$admin$292f$notification$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getNotificationPreview"],
+    "00bcd4ca224f1b825a546d7c69ab14070e0669be66",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$auth$292f$login$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["signOut"]
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f28$admin$292f$dashboard$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$app$2f28$auth$292f$login$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29222c$__ACTIONS_MODULE1__$3d3e$__$225b$project$5d2f$src$2f$app$2f28$admin$292f$notification$2d$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/(admin)/dashboard/page/actions.js { ACTIONS_MODULE0 => "[project]/src/app/(auth)/login/actions.ts [app-rsc] (ecmascript)", ACTIONS_MODULE1 => "[project]/src/app/(admin)/notification-actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$auth$292f$login$2f$actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/(auth)/login/actions.ts [app-rsc] (ecmascript)");
@@ -71,7 +71,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f
 "[project]/src/app/(admin)/notification-actions.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-/* __next_internal_action_entry_do_not_use__ [{"00af6c128b2410529942d73130a469ff5ea35bb574":{"name":"getNotificationPreview"}},"src/app/(admin)/notification-actions.ts",""] */ __turbopack_context__.s([
+/* __next_internal_action_entry_do_not_use__ [{"00735f55294aee365770bac920407bca0c7e1bf818":{"name":"getNotificationPreview"}},"src/app/(admin)/notification-actions.ts",""] */ __turbopack_context__.s([
     "getNotificationPreview",
     ()=>getNotificationPreview
 ]);
@@ -88,12 +88,12 @@ async function getNotificationPreview() {
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
     getNotificationPreview
 ]);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getNotificationPreview, "00af6c128b2410529942d73130a469ff5ea35bb574", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getNotificationPreview, "00735f55294aee365770bac920407bca0c7e1bf818", null);
 }),
 "[project]/src/app/(auth)/login/actions.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-/* __next_internal_action_entry_do_not_use__ [{"009e1e4f863829f2055a5e8a67a710f6eaa9042156":{"name":"signOut"},"601cc317cc8428d25cce0ae9db0e8a17f952e13395":{"name":"resetPassword"},"6062a63524d0cd079719cb774b9ebd3baf3e1499ba":{"name":"login"},"608434cedaa9dfe9c28e74a89962702b018ec3d53b":{"name":"recover"}},"src/app/(auth)/login/actions.ts",""] */ __turbopack_context__.s([
+/* __next_internal_action_entry_do_not_use__ [{"00bcd4ca224f1b825a546d7c69ab14070e0669be66":{"name":"signOut"},"6000e143c54718ca43732ebdd1cb5cf53df25e5dff":{"name":"recover"},"6031b7689d93a0e5d3f0457c656dfc4714e7f9508c":{"name":"login"},"605add4bb53ed42fe3a88f18c406ba6c5289c49400":{"name":"resetPassword"}},"src/app/(auth)/login/actions.ts",""] */ __turbopack_context__.s([
     "login",
     ()=>login,
     "recover",
@@ -172,10 +172,10 @@ async function resetPassword(_, form) {
     recover,
     resetPassword
 ]);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(login, "6062a63524d0cd079719cb774b9ebd3baf3e1499ba", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signOut, "009e1e4f863829f2055a5e8a67a710f6eaa9042156", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(recover, "608434cedaa9dfe9c28e74a89962702b018ec3d53b", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(resetPassword, "601cc317cc8428d25cce0ae9db0e8a17f952e13395", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(login, "6031b7689d93a0e5d3f0457c656dfc4714e7f9508c", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(signOut, "00bcd4ca224f1b825a546d7c69ab14070e0669be66", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(recover, "6000e143c54718ca43732ebdd1cb5cf53df25e5dff", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(resetPassword, "605add4bb53ed42fe3a88f18c406ba6c5289c49400", null);
 }),
 "[project]/src/lib/notifications/feed.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
@@ -348,13 +348,13 @@ __turbopack_context__.s([
     "loadNotificationPreview",
     ()=>loadNotificationPreview
 ]);
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$require$2d$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/auth/require-admin.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$render$2d$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/auth/render-admin.ts [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$notifications$2f$feed$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/notifications/feed.ts [app-rsc] (ecmascript)");
 ;
 ;
 ;
 async function loadNotificationPreview() {
-    const { db } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$require$2d$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["requireAdmin"])();
+    const { db } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2f$render$2d$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["renderAdmin"])();
     async function recent(table) {
         const { data, error } = await db.from(table).select("*").order("created_at", {
             ascending: false

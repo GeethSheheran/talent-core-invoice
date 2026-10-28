@@ -1,10 +1,12 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { PanelLeft } from "lucide-react";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { renderAdmin } from "@/lib/auth/render-admin";
+import { WorkspaceTitle } from "@/components/layout/workspace-title";
 import { NotificationMenu } from "@/components/layout/notification-menu";
 import { SettingsMenu } from "@/components/layout/settings-menu";
 import { Sidebar } from "@/components/layout/sidebar";
+import { MobileNavigation } from "@/components/layout/mobile-navigation";
 export const dynamic = "force-dynamic";
 export default async function AdminLayout({
   children,
@@ -12,7 +14,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   try {
-    await requireAdmin();
+    await renderAdmin();
   } catch {
     redirect("/login");
   }
@@ -24,9 +26,10 @@ export default async function AdminLayout({
       <Sidebar />
       <div>
         <header className="workspace-bar">
+          <MobileNavigation />
           <Link href="/dashboard" className="workspace-identity">
             <PanelLeft size={18} aria-hidden="true" />
-            Ledger <span className="muted">/ Workspace</span>
+            Ledger <WorkspaceTitle />
           </Link>
           <div className="workspace-tools">
             <span>Administrator</span>

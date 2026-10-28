@@ -2,7 +2,7 @@ import { NotificationsPage } from "@/components/notifications-page";
 import { PaymentsList } from "@/components/payments-list";
 import { summarizePayments } from "@/lib/payments/summary";
 import type { Tables } from "@/lib/db/database.types";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { notFound } from "next/navigation";
 import {
   allRows,
@@ -28,7 +28,9 @@ export default async function ListPage({
     allRows(tableMap[key])
       .then((data) => ({ data, error: "" }))
       .catch((error) => ({ data: [], error: recordLoadMessage(error) })),
-    allRows("companies"),
+    collection === "services" || collection === "companies"
+      ? Promise.resolve([])
+      : allRows("companies"),
   ]);
   if (result.error)
     return (

@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { ListControls } from "@/components/list-controls";
@@ -85,11 +85,22 @@ export function CollectionList({
                 .replace(/^./, (letter) => letter.toUpperCase()),
             }))}
           />
-          <Link className="button" href={`/${collection}/new`}>
+          <Link
+            className="button collection-create"
+            aria-label={
+              collection === "companies"
+                ? "Add company"
+                : "New " + collection.replace(/s$/, "")
+            }
+            href={`/${collection}/new`}
+          >
             <Plus size={17} aria-hidden="true" />{" "}
-            {collection === "companies"
-              ? "Add company"
-              : "New " + collection.replace(/s$/, "")}
+            <span className="create-full-label">
+              {collection === "companies"
+                ? "Add company"
+                : "New " + collection.replace(/s$/, "")}
+            </span>
+            <span className="create-short-label">New</span>
           </Link>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { NotificationPreview } from "@/components/notification-preview";
 import { loadNotificationPreview } from "@/lib/notifications/preview";
 import { NewMenu } from "@/components/new-menu";
@@ -121,7 +121,7 @@ export default async function Dashboard({
         ))}
       </div>
       <div className="grid dashboard-activity-grid">
-        <section className="card">
+        <section className="card dashboard-billing">
           <div className="heading">
             <h2>Billing activity</h2>
             <span className="muted">Last 6 months · {currency}</span>

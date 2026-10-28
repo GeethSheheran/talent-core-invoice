@@ -868,7 +868,7 @@ export function RecordEditor({
             )}
             {hasRows && (
               <div className="table-wrap">
-                <table>
+                <table className="responsive-table">
                   <thead>
                     <tr>
                       <th>Service</th>
@@ -879,9 +879,9 @@ export function RecordEditor({
                   <tbody>
                     {previewLines.map((line, index) => (
                       <tr key={index}>
-                        <td>{line.description}</td>
-                        <td>{line.quantity}</td>
-                        <td>{formatMoney(line.rate, currency)}</td>
+                        <td data-label="Service">{line.description}</td>
+                        <td data-label="Quantity">{line.quantity}</td>
+                        <td data-label="Unit rate">{formatMoney(line.rate, currency)}</td>
                       </tr>
                     ))}
                   </tbody>

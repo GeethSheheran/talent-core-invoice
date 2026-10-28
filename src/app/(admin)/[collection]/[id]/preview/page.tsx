@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { notFound } from "next/navigation";
 import { allRows, oneRow } from "@/lib/db/repositories/records";
 import { brandSnapshot } from "@/lib/documents/brand";

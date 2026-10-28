@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { Plus, ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 export function NewMenu() {
@@ -43,31 +43,31 @@ export function NewMenu() {
         ref={trigger}
         aria-expanded={open}
         aria-controls="new-record-options"
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(!open)}
       >
         <Plus size={17} aria-hidden="true" />
         New{" "}
         <ChevronDown className="menu-chevron" size={16} aria-hidden="true" />
       </button>
-      {open && (
-        <nav
-          id="new-record-options"
-          className="new-menu-options"
-          aria-label="Create new"
-        >
-          {[
-            ["Company", "/companies/new"],
-            ["Proposal", "/proposals/new"],
-            ["Invoice", "/invoices/new"],
-            ["Expense", "/expenses/new"],
-            ["Receipt", "/payments/new"],
-          ].map(([label, href]) => (
-            <Link key={label} href={href} onClick={() => setOpen(false)}>
-              {label}
-            </Link>
-          ))}
-        </nav>
-      )}
+      <nav
+        hidden={!open}
+        inert={!open}
+        id="new-record-options"
+        className="new-menu-options"
+        aria-label="Create new"
+      >
+        {[
+          ["Company", "/companies/new"],
+          ["Proposal", "/proposals/new"],
+          ["Invoice", "/invoices/new"],
+          ["Expense", "/expenses/new"],
+          ["Receipt", "/payments/new"],
+        ].map(([label, href]) => (
+          <Link key={label} href={href} onClick={() => setOpen(false)}>
+            {label}
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }

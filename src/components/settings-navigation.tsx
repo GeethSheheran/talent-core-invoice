@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { Building2, Palette, Receipt, Bell, Plug } from "lucide-react";
 import {
   settingsSections,

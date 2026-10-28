@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { useRef, useState } from "react";
 import { Bell, X } from "lucide-react";
 import { getNotificationPreview } from "@/app/(admin)/notification-actions";

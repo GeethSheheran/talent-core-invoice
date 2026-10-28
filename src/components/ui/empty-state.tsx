@@ -1,5 +1,5 @@
 import { FolderOpen } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 export function EmptyState({
   title,
   body,

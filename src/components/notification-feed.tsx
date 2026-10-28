@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { useEffect, useRef, useState } from "react";
 import { Bell, FileText, Mail, Activity, X, ArrowUpRight } from "lucide-react";
 import { ListControls } from "@/components/list-controls";
@@ -109,7 +109,10 @@ export function NotificationFeed({ items }: { items: ActivityItem[] }) {
                 <button
                   className="activity-row"
                   type="button"
-                  onClick={() => setSelected(item)}
+                  onClick={() => {
+                    setSelected(item);
+                    dialog.current?.showModal();
+                  }}
                   aria-label={`Open ${item.title}${item.record ? ": " + item.record : ""}`}
                 >
                   <span className="activity-icon">
@@ -181,7 +184,6 @@ export function NotificationFeed({ items }: { items: ActivityItem[] }) {
         className="activity-dialog"
         ref={dialog}
         aria-labelledby="activity-title"
-        onClose={() => setSelected(null)}
         onClick={(event) => {
           if (event.target === event.currentTarget) {
             const box = event.currentTarget.getBoundingClientRect();
@@ -191,7 +193,7 @@ export function NotificationFeed({ items }: { items: ActivityItem[] }) {
               event.clientY < box.top ||
               event.clientY > box.bottom
             )
-              setSelected(null);
+              dialog.current?.close();
           }
         }}
       >
@@ -206,7 +208,7 @@ export function NotificationFeed({ items }: { items: ActivityItem[] }) {
                 type="button"
                 className="secondary icon-button"
                 aria-label="Close notification"
-                onClick={() => setSelected(null)}
+                onClick={() => dialog.current?.close()}
               >
                 <X size={18} />
               </button>

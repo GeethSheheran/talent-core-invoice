@@ -1,4 +1,6 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
+import { Suspense } from "react";
+import { PageLoading } from "@/components/page-loading";
 import { Building2, ChevronLeft } from "lucide-react";
 import { CompanySectionNav } from "@/components/company-section-nav";
 import { loadCompanySection } from "@/lib/company-data";
@@ -159,7 +161,16 @@ export async function CompanyDetail({
           <CompanySectionNav companyId={company.id} selected={section} />
         </aside>
         <div className="company-section" key={section}>
-          <SectionContent company={company} section={section} />
+          <Suspense
+            key={section}
+            fallback={
+              <PageLoading
+                label={`Loading ${sectionLabels[section].toLowerCase()}…`}
+              />
+            }
+          >
+            <SectionContent company={company} section={section} />
+          </Suspense>
         </div>
       </div>
     </>

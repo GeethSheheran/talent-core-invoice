@@ -1,5 +1,5 @@
 import "server-only";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { renderAdmin } from "@/lib/auth/render-admin";
 import type { Database, Tables } from "@/lib/db/database.types";
 export const tableMap = {
   expenses: "company_expenses",
@@ -34,7 +34,7 @@ export async function allRows<T extends keyof Database["public"]["Tables"]>(
   table: T,
   companyId?: string,
 ) {
-  const { db } = await requireAdmin();
+  const { db } = await renderAdmin();
   const rows: Tables<T>[] = [];
   for (let start = 0; ; start += 1000) {
     let query = db.from(table).select("*");
@@ -54,7 +54,7 @@ export async function allRows<T extends keyof Database["public"]["Tables"]>(
   return rows;
 }
 export async function balances() {
-  const { db } = await requireAdmin();
+  const { db } = await renderAdmin();
   const rows: Database["public"]["Views"]["invoice_balances"]["Row"][] = [];
   for (let start = 0; ; start += 1000) {
     const { data, error } = await db
@@ -72,7 +72,7 @@ export async function oneRow<T extends keyof Database["public"]["Tables"]>(
   table: T,
   id: string,
 ) {
-  const { db } = await requireAdmin();
+  const { db } = await renderAdmin();
   const { data, error } = await db
     .from(table)
     .select("*")

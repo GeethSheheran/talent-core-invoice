@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { configured } from "@/lib/env";
 import { AuthForm } from "@/components/auth-form";
 export default function Login() {

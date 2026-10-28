@@ -35,3 +35,16 @@ Company sections load independently. An unavailable expense section shows a setu
 Apply `supabase/migrations/20261027093351_attach_pending_expenses.sql` after the expenses and recurring schedules migration. This adds the administrator-only `attach_pending_expenses` RPC; it does not modify existing records during deployment. The company invoice popup lists matching, unassigned expenses incurred by today in Asia/Colombo. Clicking **Add these expenses to invoice** attaches the reviewed costs and recalculates totals in one transaction. Changed amounts, another invoice's expenses, and issued invoices are rejected. Retries cannot add the same expense twice.
 
 The migration is tested locally, but has not been applied to the hosted project through this connection because project access is denied. Run the migration in the owning project's SQL Editor, or authorize the owning Supabase connection, before using the new attachment action.
+
+Rechecked on 2026-10-28: the configured project is `vhqtksslpdencpczfhgk`.
+Auth settings and signing keys respond successfully; server-key probes return
+401, and the connected Supabase account cannot list this project's migrations.
+The browser's `PGRST202` attachment error means the RPC signature is unavailable
+to the Data API. In this project's SQL Editor, check
+`select to_regprocedure('public.attach_pending_expenses(uuid,jsonb)');`.
+If it returns null, apply only the attachment migration above after confirming
+its prerequisite migration is installed. If it already exists with the expected
+signature and grants, reload the API schema with `notify pgrst, 'reload schema';`.
+Replace the invalid server secret with one for this same project and rerun
+`npm run check:supabase`. Do not rerun initial setup, reset the database, or attach
+expenses through browser-side balance calculations.

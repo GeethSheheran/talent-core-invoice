@@ -125,7 +125,12 @@ export function CompanyRecordDialog({
           </button>
         </header>
         <div className="company-dialog-body">
-          {busy && !editor && <p role="status">Loading…</p>}
+          {busy && !editor && (
+            <p className="loading-caption" role="status">
+              <span className="loading-spinner" aria-hidden="true" />
+              Loading…
+            </p>
+          )}
           {error && (
             <div className="error" role="alert">
               <p>{error}</p>
@@ -216,7 +221,7 @@ export function CompanyRecordDialog({
               </dl>
               {record.items.length > 0 && (
                 <div className="table-wrap">
-                  <table>
+                  <table className="responsive-table">
                     <thead>
                       <tr>
                         <th>Description</th>
@@ -227,9 +232,9 @@ export function CompanyRecordDialog({
                     <tbody>
                       {record.items.map((item) => (
                         <tr key={item.id}>
-                          <td>{item.description}</td>
-                          <td>{item.quantity}</td>
-                          <td>{formatMoney(item.amount, currency)}</td>
+                          <td data-label="Description">{item.description}</td>
+                          <td data-label="Quantity">{item.quantity}</td>
+                          <td data-label="Amount">{formatMoney(item.amount, currency)}</td>
                         </tr>
                       ))}
                     </tbody>

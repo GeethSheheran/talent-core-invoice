@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { FinancialForm } from "@/components/financial-form";
 import { DocumentButton } from "@/components/document-button";
 import { formatMoney } from "@/lib/billing/money";

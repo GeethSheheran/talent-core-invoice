@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { Bell, ChevronRight, X } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { ActivityItem } from "@/lib/notifications/feed";
@@ -54,7 +54,10 @@ export function NotificationPreview({
             <button
               type="button"
               className="notification-row"
-              onClick={() => setSelected(item)}
+              onClick={() => {
+                setSelected(item);
+                dialog.current?.showModal();
+              }}
               aria-haspopup="dialog"
             >
               <span className="notification-row-icon">
@@ -87,7 +90,6 @@ export function NotificationPreview({
             ref={dialog}
             className="company-dialog notification-detail-dialog"
             aria-labelledby={titleId}
-            onClose={() => setSelected(null)}
             onClick={(event) => {
               if (event.target === event.currentTarget) dialog.current?.close();
             }}

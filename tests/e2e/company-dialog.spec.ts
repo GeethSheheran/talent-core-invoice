@@ -16,11 +16,18 @@ test.beforeAll(async () => {
       import { useState } from "react";
       import { SettingsMenu } from "./src/components/layout/settings-menu";
       import { NotificationMenu } from "./src/components/layout/notification-menu";
+      import { MobileNavigation } from "./src/components/layout/mobile-navigation";
+      import { Sidebar } from "./src/components/layout/sidebar";
+      import { CollectionList } from "./src/components/collection-list";
       import { NewMenu } from "./src/components/new-menu";
+      import { RecordsTable } from "./src/components/records-table";
+      import { WorkspaceTitle } from "./src/components/layout/workspace-title";
+      import { BillingChart } from "./src/components/billing-chart";
+      import { NotificationPreview } from "./src/components/notification-preview";
       import { CompanySectionNav } from "./src/components/company-section-nav";
       import { CompanyRecordDialog } from "./src/components/company-record-dialog";
       function NavigationFixture() { const [selected, setSelected] = useState("overview"); return <div><div className="workspace-tools"><SettingsMenu /></div><aside className="company-sidebar" style={{ width: 240 }}><CompanySectionNav companyId="10000000-0000-4000-8000-000000000001" selected={selected} onNavigate={() => setSelected("expenses")} /></aside></div>; }
-      createRoot(document.getElementById("root")).render(<main className="content"><header className="workspace-bar"><span>Ledger / Workspace</span><div className="workspace-tools"><NotificationMenu /></div></header><h1>Company workspace</h1><NavigationFixture /><NewMenu /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="payments" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" recordId="10000000-0000-4000-8000-000000000002" label="View draft invoice" /></main>);`,
+      createRoot(document.getElementById("root")).render(location.search.includes("mobile-layout") ? <div className="shell"><Sidebar /><div><header className="workspace-bar"><MobileNavigation /><a href="/dashboard" className="workspace-identity">Ledger <WorkspaceTitle /></a><div className="workspace-tools"><NotificationMenu /><SettingsMenu /></div></header><main className="content"><CollectionList collection={new URLSearchParams(location.search).get("collection") || "services"} rows={[{id: "service-1", name: "Web development", number: "INV-CMP0001-2026-00001", company_id: "company", rate: 12000000, currency: "LKR", active: true, created_at: "2026-10-28"}]} companies={{company: "Example company"}} /><div className="heading"><h1>Overview</h1><div className="actions"><NewMenu /></div></div></main></div></div> : <main className="content"><header className="workspace-bar"><span>Ledger <WorkspaceTitle /></span><div className="workspace-tools"><NotificationMenu /></div></header><h1>Company workspace</h1><NavigationFixture /><NewMenu /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="payments" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" recordId="10000000-0000-4000-8000-000000000002" label="View draft invoice" /><section aria-label="Service catalogue"><RecordsTable collection="services" rows={[{id: "service-1", name: "Web development", rate: 12000, currency: "LKR", active: true}]} /></section><div className="grid dashboard-activity-grid"><section className="card dashboard-billing"><div className="heading"><h2>Billing activity</h2></div><BillingChart months={[{month: "2026-10", issued: 12000, collected: 6000, issuedCompanies: 1, collectedCompanies: 1}]} currency="LKR" /><p className="chart-legend">Issued charges</p></section><section className="card dashboard-notifications"><div className="heading"><h2>Latest notifications</h2></div><NotificationPreview items={Array.from({length: 5}, (_, index) => ({id: "layout-" + index, title: "Invoice update", message: "Invoice saved", status: "recorded", date: "2026-10-27T10:00:00Z", category: "changes", company: "Test Company", record: "INV-001", href: "/invoices/invoice"}))} /></section></div></main>);`,
       resolveDir: process.cwd(),
       loader: "tsx",
     },
@@ -36,17 +43,18 @@ test.beforeAll(async () => {
           builder.onResolve(
             {
               filter:
-                /^(next\/(navigation|link)|@\/app\/\(admin\)\/(company-actions|notification-actions|actions))$/,
+                /^(next\/(navigation|link)|@\/app\/\(admin\)\/(company-actions|notification-actions|actions)|@\/app\/\(auth\)\/login\/actions)$/,
             },
             (args) => ({ path: args.path, namespace: "fixture" }),
           );
           builder.onLoad({ filter: /.*/, namespace: "fixture" }, (args) => ({
             contents:
               args.path === "next/navigation"
-                ? `export const useRouter = () => ({ refresh() {} }); export const useSearchParams = () => new URLSearchParams(location.search);`
+                ? `export const usePathname = () => "/services"; export const useRouter = () => ({ refresh() {} }); export const useSearchParams = () => new URLSearchParams(location.search);`
                 : args.path === "next/link"
-                  ? `import React from "react"; export default function Link({children, scroll, onClick, ...props}) { return React.createElement("a", {...props, onClick(event) { event.preventDefault(); onClick?.(event); }}, children); }`
+                  ? `import React from "react"; export const useLinkStatus = () => ({ pending: false }); export default function Link({children, scroll, onClick, ...props}) { return React.createElement("a", {...props, onClick(event) { event.preventDefault(); onClick?.(event); }}, children); }`
                   : `
+        export async function signOut() {}
         const company = "10000000-0000-4000-8000-000000000001";
         export async function loadCompanyEditor(_, collection) {
           if (location.search.includes("unavailable")) return { error: "This section needs a database update." };
@@ -290,4 +298,241 @@ test("notification preview handles failure and stays within mobile viewport", as
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
   await expect(panel.getByRole("button", { name: "Retry" })).toBeVisible();
+});
+
+test("company menu does not move on hover and services have no company column", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture");
+  const link = page
+    .getByRole("navigation", { name: "Company sections", exact: true })
+    .getByRole("link", { name: "Projects" });
+  const before = await link.boundingBox();
+  await link.hover();
+  await expect(link).toHaveCSS("transform", "none");
+  expect(await link.boundingBox()).toEqual(before);
+  const services = page.getByRole("region", { name: "Service catalogue" });
+  await expect(
+    services.getByRole("columnheader", { name: "Company", exact: true }),
+  ).toHaveCount(0);
+  await expect(services.getByRole("columnheader")).toHaveCount(4);
+  await expect(page.locator(".workspace-bar")).toContainText("Services");
+});
+
+test("dashboard activity cards match heights and chart fills available space", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/company-ui-fixture");
+  const chartCard = page.locator(".dashboard-billing");
+  const notifications = page.locator(".dashboard-notifications");
+  const chart = page.locator(".dashboard-billing .chart");
+  const left = await chartCard.boundingBox();
+  const right = await notifications.boundingBox();
+  expect(Math.abs(left!.height - right!.height)).toBeLessThanOrEqual(1);
+  expect((await chart.boundingBox())!.height).toBeGreaterThan(220);
+  const bars = await chart
+    .locator(".bar")
+    .evaluateAll((elements) =>
+      elements.map((element) => element.getBoundingClientRect().height),
+    );
+  expect(bars[0]).toBeGreaterThan(100);
+  expect(Math.abs(bars[0] / bars[1] - 2)).toBeLessThan(0.1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("mobile drawer closes on Escape, navigation, and desktop resize", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/company-ui-fixture?mobile-layout");
+  await expect(page.locator(".desktop-sidebar")).not.toBeVisible();
+  const toggle = page.getByRole("button", { name: "Open navigation" });
+  await toggle.click();
+  const drawer = page.getByRole("dialog", { name: "Workspace navigation" });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("button", { name: "Sign out" })).toBeVisible();
+  await expect(
+    drawer.getByRole("link", { name: "Services", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+  await page.keyboard.press("Escape");
+  await expect(drawer).not.toBeVisible();
+  await expect(toggle).toBeFocused();
+  await toggle.click();
+  await drawer.getByRole("link", { name: "Invoices", exact: true }).click();
+  await expect(drawer).not.toBeVisible();
+  await toggle.click();
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(drawer).not.toBeVisible();
+  await expect(page.locator(".desktop-sidebar")).toBeVisible();
+  await expect(toggle).not.toBeVisible();
+});
+
+for (const width of [320, 390, 720]) {
+  test(`mobile lists and controls fit at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    for (const collection of [
+      "services",
+      "companies",
+      "projects",
+      "agreements",
+      "proposals",
+      "invoices",
+      "expenses",
+    ]) {
+      await page.goto(
+        `/company-ui-fixture?mobile-layout&collection=${collection}`,
+      );
+      const heading = page.locator(".collection-heading");
+      const title = await heading.locator("h1").boundingBox();
+      const create = await heading.locator(".collection-create").boundingBox();
+      expect(
+        Math.abs(title!.y + title!.height / 2 - create!.y - create!.height / 2),
+      ).toBeLessThan(3);
+      const table = page.locator(".responsive-table");
+      await expect(table.locator("td[data-label=Date]")).toContainText(
+        "2026-10-28",
+      );
+      expect(
+        await table.evaluate((el) => el.scrollWidth <= el.clientWidth),
+      ).toBe(true);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+    }
+    await page.goto("/company-ui-fixture?mobile-layout");
+    await page
+      .getByRole("button", { name: "Search services", exact: true })
+      .click();
+    const search = page.getByRole("textbox", { name: "Search services" });
+    await expect(search).toBeFocused();
+    await search.fill("no match");
+    await expect(page.getByText("No matching services")).toBeVisible();
+    await search.fill("");
+    await search.press("Escape");
+    await expect(search).not.toBeVisible();
+    await page.getByRole("button", { name: "Filter services" }).click();
+    const panel = page.locator(".list-filter-panel");
+    const bounds = await panel.boundingBox();
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+    await page
+      .getByRole("combobox", { name: "services status" })
+      .selectOption("active");
+    await expect(page.locator(".responsive-table tbody tr")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    const overview = page.locator(".content > .heading").last();
+    const overviewTitle = await overview.locator("h1").boundingBox();
+    const newButton = await overview
+      .getByRole("button", { name: "New", exact: true })
+      .boundingBox();
+    expect(
+      Math.abs(
+        overviewTitle!.y +
+          overviewTitle!.height / 2 -
+          newButton!.y -
+          newButton!.height / 2,
+      ),
+    ).toBeLessThan(3);
+    if (width === 390)
+      await page.screenshot({
+        path: ".artifacts/mobile-workspace.png",
+        fullPage: true,
+      });
+  });
+}
+
+test("drawer animates both ways and can reopen without stale state", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/company-ui-fixture?mobile-layout");
+  const drawer = page.locator(".mobile-navigation");
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(drawer).toBeVisible();
+  expect(
+    await drawer.evaluate((el) => getComputedStyle(el).transitionProperty),
+  ).toContain("transform");
+  await drawer.evaluate(async (el) => {
+    await Promise.all(
+      el.getAnimations().map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+  await expect(drawer).toHaveCSS("transform", "none");
+  const exit = await drawer.evaluate((el) => {
+    (el as HTMLDialogElement).close();
+    return {
+      open: (el as HTMLDialogElement).open,
+      display: getComputedStyle(el).display,
+      moving: el.getAnimations().length,
+    };
+  });
+  expect(exit.open).toBe(false);
+  expect(exit.display).not.toBe("none");
+  expect(exit.moving).toBeGreaterThan(0);
+  await expect(drawer).not.toBeVisible();
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(drawer).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(drawer).not.toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.getByRole("button", { name: "Open navigation" }).click();
+  await expect(drawer).toHaveCSS("transition-duration", "0s");
+  expect(await drawer.evaluate((el) => el.getAnimations().length)).toBe(0);
+  await page.keyboard.press("Escape");
+  await expect(drawer).not.toBeVisible();
+});
+
+test("menus and notification details retain closing content and reopen", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture");
+  const newButton = page.getByRole("button", { name: "New", exact: true });
+  await newButton.click();
+  const menu = page.locator("#new-record-options");
+  await expect(menu).toBeVisible();
+  await menu.evaluate(async (el) => {
+    await Promise.all(
+      el.getAnimations().map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveAttribute("inert", "");
+  await expect(menu).not.toBeVisible();
+  await newButton.click();
+  await expect(menu).toBeVisible();
+  await page.keyboard.press("Escape");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await page.getByRole("button", { name: "Preview notifications" }).click();
+    await page
+      .locator("#notification-preview-panel")
+      .getByRole("button", { name: /Invoice update 0/ })
+      .click();
+    const detail = page.getByRole("dialog", { name: "Invoice update 0" });
+    await expect(detail).toBeVisible();
+    await detail.evaluate(async (el) => {
+      await Promise.all(
+        el
+          .getAnimations()
+          .map((animation) => animation.finished.catch(() => {})),
+      );
+    });
+    await detail
+      .getByRole("button", { name: "Close notification details" })
+      .click();
+    const retained = page
+      .locator(".notification-detail-dialog")
+      .filter({
+        has: page.getByText("Invoice details for preview 0", { exact: true }),
+      });
+    await expect(retained).toBeAttached();
+    await expect(retained).not.toBeVisible();
+  }
 });

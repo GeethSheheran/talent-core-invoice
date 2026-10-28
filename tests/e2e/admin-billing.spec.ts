@@ -67,3 +67,34 @@ test("setup remains usable at a mobile viewport", async ({ page }) => {
     fullPage: true,
   });
 });
+
+test("shows feedback while navigation waits for the server", async ({
+  page,
+}) => {
+  let release!: () => void;
+  const waiting = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(/\/recover(?:\?|$)/, async (route) => {
+    await waiting;
+    await route.continue();
+  });
+  await page.goto("/login");
+  await page.waitForLoadState("networkidle");
+  const link = page.getByRole("link", { name: "Forgot your password?" });
+  test.skip((await link.count()) === 0, "Requires configured sign-in screen");
+  try {
+    await link.click({ noWaitAfter: true });
+    await expect(link.getByRole("status")).toContainText("Loading page");
+    await expect(link.locator(".loading-spinner")).toBeVisible();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await expect(link.locator(".loading-spinner")).toHaveCSS(
+      "animation-name",
+      "none",
+    );
+  } finally {
+    release();
+  }
+  await expect(page).toHaveURL(/\/recover$/);
+  await expect(page.locator(".navigation-status")).toHaveCount(0);
+});

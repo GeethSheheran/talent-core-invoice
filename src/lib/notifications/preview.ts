@@ -1,12 +1,12 @@
 import "server-only";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { renderAdmin } from "@/lib/auth/render-admin";
 import {
   buildActivityFeed,
   type ActivityTarget,
 } from "@/lib/notifications/feed";
 import type { Database, Tables } from "@/lib/db/database.types";
 export async function loadNotificationPreview() {
-  const { db } = await requireAdmin();
+  const { db } = await renderAdmin();
   async function recent<T extends keyof Database["public"]["Tables"]>(
     table: T,
   ) {

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { CompanyDetail } from "@/components/company-detail";
 import type { Tables } from "@/lib/db/database.types";
 import { InvoiceWorkflow } from "@/components/invoice-workflow";
@@ -56,27 +56,31 @@ export default async function DetailPage({
               : "active"),
   );
   const currency = String(r.currency || "LKR");
-  const companies = await allRows("companies");
+  // Independent reads run together after the record has been authorized.
+  const [companies, balanceRows, allocations, deliveries, files] =
+    await Promise.all([
+      collection === "services" ? Promise.resolve([]) : allRows("companies"),
+      ["invoices", "payments"].includes(collection)
+        ? (balances() as Promise<(Balance & { number: string | null })[]>)
+        : Promise.resolve([] as (Balance & { number: string | null })[]),
+      collection === "payments"
+        ? allRows("payment_allocations").then((rows) =>
+            rows.filter((row) => row.payment_id === id),
+          )
+        : Promise.resolve([]),
+      collection === "invoices"
+        ? allRows("delivery_attempts").then((rows) =>
+            rows.filter((row) => row.invoice_id === id),
+          )
+        : Promise.resolve([]),
+      ["invoices", "payments", "proposals"].includes(collection)
+        ? allRows("document_files").then((rows) =>
+            rows.filter((row) => row.record_id === id),
+          )
+        : Promise.resolve([]),
+    ]);
   const names = Object.fromEntries(companies.map((c) => [c.id, c.name]));
-  let balanceRows: (Balance & { number: string | null })[] = [];
-  if (["invoices", "payments", "companies"].includes(collection))
-    balanceRows = (await balances()) as unknown as (Balance & {
-      number: string | null;
-    })[];
   const current = balanceRows.find((i) => i.id === id);
-  const allocations =
-    collection === "payments"
-      ? (await allRows("payment_allocations")).filter(
-          (a) => a.payment_id === id,
-        )
-      : [];
-  const deliveries =
-    collection === "invoices"
-      ? (await allRows("delivery_attempts")).filter((a) => a.invoice_id === id)
-      : [];
-  const files = ["invoices", "payments", "proposals"].includes(collection)
-    ? (await allRows("document_files")).filter((f) => f.record_id === id)
-    : [];
   return (
     <>
       <div className="heading">
@@ -239,7 +243,7 @@ export default async function DetailPage({
       {deliveries.length > 0 && (
         <section className="card">
           <h2>Delivery history</h2>
-          <table>
+          <table className="responsive-table">
             <thead>
               <tr>
                 <th>Channel</th>
@@ -251,12 +255,12 @@ export default async function DetailPage({
             <tbody>
               {deliveries.map((d) => (
                 <tr key={d.id}>
-                  <td>{d.channel}</td>
-                  <td>{d.recipient}</td>
-                  <td>
+                  <td data-label="Channel">{d.channel}</td>
+                  <td data-label="Recipient">{d.recipient}</td>
+                  <td data-label="Status">
                     <StatusBadge state={d.state} />
                   </td>
-                  <td>{d.created_at.slice(0, 10)}</td>
+                  <td data-label="Date">{d.created_at.slice(0, 10)}</td>
                 </tr>
               ))}
             </tbody>

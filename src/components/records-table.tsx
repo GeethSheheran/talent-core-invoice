@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatMoney } from "@/lib/billing/money";
@@ -22,12 +22,14 @@ export function RecordsTable({
       />
     );
   return (
-    <div className="table-wrap">
-      <table>
+    <div className="table-wrap mobile-records">
+      <table className="responsive-table">
         <thead>
           <tr>
             <th>{collection === "companies" ? "Company" : "Record"}</th>
-            <th>{collection === "companies" ? "Contact" : "Company"}</th>
+            {collection !== "services" && (
+              <th>{collection === "companies" ? "Contact" : "Company"}</th>
+            )}
             <th>Amount / currency</th>
             <th>Status</th>
             <th>Date</th>
@@ -48,7 +50,10 @@ export function RecordsTable({
             const amount = row.total ?? row.amount ?? row.price ?? row.rate;
             return (
               <tr key={id}>
-                <td>
+                <td
+                  className="record-title"
+                  data-label={collection === "companies" ? "Company" : "Record"}
+                >
                   {collection === "notifications" ? (
                     label
                   ) : renderRecord ? (
@@ -58,19 +63,25 @@ export function RecordsTable({
                   )}
                   {row.code && <div className="muted">{String(row.code)}</div>}
                 </td>
-                <td>
-                  {String(
-                    collection === "companies"
-                      ? row.email || "—"
-                      : companies[String(row.company_id)] || "—",
-                  )}
-                </td>
-                <td>
+                {collection !== "services" && (
+                  <td
+                    data-label={
+                      collection === "companies" ? "Contact" : "Company"
+                    }
+                  >
+                    {String(
+                      collection === "companies"
+                        ? row.email || "—"
+                        : companies[String(row.company_id)] || "—",
+                    )}
+                  </td>
+                )}
+                <td data-label="Amount / currency">
                   {typeof amount === "number"
                     ? formatMoney(amount, String(row.currency || "LKR"))
                     : String(row.currency || "—")}
                 </td>
-                <td>
+                <td data-label="Status">
                   <StatusBadge
                     state={String(
                       (collection === "expenses"
@@ -87,7 +98,7 @@ export function RecordsTable({
                     )}
                   />
                 </td>
-                <td className="muted">
+                <td className="muted" data-label="Date">
                   {String(
                     row.due_date ||
                       row.received_on ||

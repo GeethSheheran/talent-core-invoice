@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { signOut } from "@/app/(auth)/login/actions";
 import { usePathname } from "next/navigation";
 import {
@@ -28,11 +28,19 @@ const links = [
   ["/notifications", "Notifications", Bell],
   ["/settings", "Settings", Settings],
 ] as const;
-export function Sidebar() {
+export function Sidebar({
+  mobile = false,
+  onNavigate,
+}: {
+  mobile?: boolean;
+  onNavigate?: () => void;
+}) {
   const path = usePathname();
   return (
-    <aside className="sidebar">
-      <Link className="wordmark" href="/dashboard">
+    <aside
+      className={mobile ? "sidebar mobile-sidebar" : "sidebar desktop-sidebar"}
+    >
+      <Link className="wordmark" href="/dashboard" onClick={onNavigate}>
         <span className="mark">L</span>ledger
         <span className="muted">.</span>
       </Link>
@@ -44,6 +52,7 @@ export function Sidebar() {
           <Link
             key={href}
             href={href}
+            onClick={onNavigate}
             aria-current={path.startsWith(href) ? "page" : undefined}
             className={"nav-link " + (path.startsWith(href) ? "active" : "")}
           >
@@ -60,7 +69,7 @@ export function Sidebar() {
           <br />
           <span className="muted">Asia / Colombo</span>
         </div>
-        <form action={signOut}>
+        <form action={signOut} onSubmit={onNavigate}>
           <button className="sidebar-signout" type="submit">
             <LogOut size={18} aria-hidden="true" />
             Sign out
