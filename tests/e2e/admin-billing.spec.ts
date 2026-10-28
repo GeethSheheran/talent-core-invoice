@@ -50,6 +50,12 @@ test("protects document and financial HTTP operations", async ({ request }) => {
   );
   expect((await request.get("/api/cron/daily")).status()).toBe(401);
   expect(
+    (
+      await request.get(`/api/companies/${id}/workspace?collection=invoices`)
+    ).status(),
+  ).toBe(401);
+  expect((await request.get("/api/notifications/preview")).status()).toBe(401);
+  expect(
     (await request.post("/api/webhooks/email", { data: "{}" })).status(),
   ).toBe(503);
 });

@@ -61,20 +61,22 @@ export default async function DetailPage({
     await Promise.all([
       collection === "services" ? Promise.resolve([]) : allRows("companies"),
       ["invoices", "payments"].includes(collection)
-        ? (balances() as Promise<(Balance & { number: string | null })[]>)
+        ? (balances(String(r.company_id)) as Promise<
+            (Balance & { number: string | null })[]
+          >)
         : Promise.resolve([] as (Balance & { number: string | null })[]),
       collection === "payments"
-        ? allRows("payment_allocations").then((rows) =>
-            rows.filter((row) => row.payment_id === id),
+        ? allRows("payment_allocations", undefined, { payment_id: id }).then(
+            (rows) => rows.filter((row) => row.payment_id === id),
           )
         : Promise.resolve([]),
       collection === "invoices"
-        ? allRows("delivery_attempts").then((rows) =>
-            rows.filter((row) => row.invoice_id === id),
+        ? allRows("delivery_attempts", undefined, { invoice_id: id }).then(
+            (rows) => rows.filter((row) => row.invoice_id === id),
           )
         : Promise.resolve([]),
       ["invoices", "payments", "proposals"].includes(collection)
-        ? allRows("document_files").then((rows) =>
+        ? allRows("document_files", undefined, { record_id: id }).then((rows) =>
             rows.filter((row) => row.record_id === id),
           )
         : Promise.resolve([]),

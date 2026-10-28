@@ -2,7 +2,7 @@
 import Link from "@/components/navigation-link";
 import { useRef, useState } from "react";
 import { Bell, X } from "lucide-react";
-import { getNotificationPreview } from "@/app/(admin)/notification-actions";
+import { getNotificationPreview } from "@/lib/client/workspace-reads";
 import {
   NotificationPreview,
   type NotificationPreviewItem,
@@ -90,7 +90,7 @@ export function NotificationMenu() {
           aria-label="Recent notifications"
           aria-busy={busy}
         >
-          {busy ? (
+          {busy && !items.length ? (
             <p role="status">Loading notifications…</p>
           ) : error ? (
             <div role="alert">

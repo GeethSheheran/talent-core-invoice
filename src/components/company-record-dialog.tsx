@@ -1,11 +1,10 @@
 "use client";
 import { useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   loadCompanyEditor,
   loadCompanyRecord,
-} from "@/app/(admin)/company-actions";
+} from "@/lib/client/workspace-reads";
 import { saveCompanyRecord } from "@/app/(admin)/actions";
 import { companyKinds, type CompanyCollection } from "@/lib/company-sections";
 import { RecordEditor } from "@/components/record-editor";
@@ -33,7 +32,6 @@ export function CompanyRecordDialog({
   label?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  const router = useRouter();
   const [editor, setEditor] = useState<EditorData>();
   const [record, setRecord] = useState<RecordData>();
   const [error, setError] = useState("");
@@ -80,7 +78,6 @@ export function CompanyRecordDialog({
   }
   async function refreshRecord() {
     if (savedId) await readRecord(savedId);
-    router.refresh();
   }
   const row = record?.row as Record<string, Json | undefined> | undefined;
   const currency = String(row?.currency || "LKR");
@@ -104,9 +101,6 @@ export function CompanyRecordDialog({
         aria-labelledby={`dialog-${collection}-${recordId || "new"}`}
         onCancel={(e) => {
           if (busy) e.preventDefault();
-        }}
-        onClose={() => {
-          router.refresh();
         }}
       >
         <header className="company-dialog-header">
@@ -164,7 +158,6 @@ export function CompanyRecordDialog({
                   setSaved(true);
                   setEditor(undefined);
                   await readRecord(result.id);
-                  router.refresh();
                   return "";
                 } catch {
                   return "Unable to save. Check your connection and try again.";
@@ -234,7 +227,9 @@ export function CompanyRecordDialog({
                         <tr key={item.id}>
                           <td data-label="Description">{item.description}</td>
                           <td data-label="Quantity">{item.quantity}</td>
-                          <td data-label="Amount">{formatMoney(item.amount, currency)}</td>
+                          <td data-label="Amount">
+                            {formatMoney(item.amount, currency)}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

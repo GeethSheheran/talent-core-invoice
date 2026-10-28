@@ -6,6 +6,7 @@ import Link from "@/components/navigation-link";
 import { notFound } from "next/navigation";
 import {
   allRows,
+  listRecords,
   recordLoadMessage,
   tableMap,
   type Collection,
@@ -25,7 +26,7 @@ export default async function ListPage({
   const query = await searchParams;
   if (collection === "notifications") return <NotificationsPage />;
   const [result, companies] = await Promise.all([
-    allRows(tableMap[key])
+    listRecords(key)
       .then((data) => ({ data, error: "" }))
       .catch((error) => ({ data: [], error: recordLoadMessage(error) })),
     collection === "services" || collection === "companies"
@@ -46,7 +47,7 @@ export default async function ListPage({
     );
   const data = result.data;
   if (collection === "payments") {
-    const payments = (data as Tables<"payments">[])
+    const payments = (data as unknown as Tables<"payments">[])
       .map(
         ({
           id,

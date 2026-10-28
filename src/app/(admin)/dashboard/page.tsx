@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "@/components/navigation-link";
 import { NotificationPreview } from "@/components/notification-preview";
 import { loadNotificationPreview } from "@/lib/notifications/preview";
@@ -8,6 +9,20 @@ import { formatMoney, currencies } from "@/lib/billing/money";
 import { metrics, type MetricInvoice } from "@/lib/dashboard/metrics";
 import { colomboDate } from "@/lib/utils/dates";
 import { RecordsTable } from "@/components/records-table";
+async function DashboardNotifications({
+  preview,
+}: {
+  preview: ReturnType<typeof loadNotificationPreview>;
+}) {
+  const result = await preview;
+  return result.error ? (
+    <p className="error" role="alert">
+      {result.error}
+    </p>
+  ) : (
+    <NotificationPreview items={result.items.slice(0, 5)} />
+  );
+}
 export default async function Dashboard({
   searchParams,
 }: {
@@ -19,13 +34,12 @@ export default async function Dashboard({
   )
     ? query.currency!
     : "LKR";
-  const [allInvoices, allPayments, companies, notificationPreview] =
-    await Promise.all([
-      balances(),
-      allRows("payments"),
-      allRows("companies"),
-      loadNotificationPreview(),
-    ]);
+  const notificationPreview = loadNotificationPreview();
+  const [allInvoices, allPayments, companies] = await Promise.all([
+    balances(),
+    allRows("payments"),
+    allRows("companies"),
+  ]);
   const invoices = allInvoices;
   const payments = allPayments;
   const availableCurrencies = currencies.filter(
@@ -139,15 +153,16 @@ export default async function Dashboard({
               View all →
             </Link>
           </div>
-          {notificationPreview.error ? (
-            <p className="error" role="alert">
-              {notificationPreview.error}
-            </p>
-          ) : (
-            <NotificationPreview
-              items={notificationPreview.items.slice(0, 5)}
-            />
-          )}
+          <Suspense
+            fallback={
+              <p className="loading-caption" role="status">
+                <span className="loading-spinner" aria-hidden="true" />
+                Loading notifications…
+              </p>
+            }
+          >
+            <DashboardNotifications preview={notificationPreview} />
+          </Suspense>
         </section>
       </div>
       <section className="card">

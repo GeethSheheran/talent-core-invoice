@@ -43,14 +43,14 @@ test.beforeAll(async () => {
           builder.onResolve(
             {
               filter:
-                /^(next\/(navigation|link)|@\/app\/\(admin\)\/(company-actions|notification-actions|actions)|@\/app\/\(auth\)\/login\/actions)$/,
+                /^(next\/(navigation|link)|@\/lib\/client\/workspace-reads|@\/app\/\(admin\)\/(company-actions|notification-actions|actions)|@\/app\/\(auth\)\/login\/actions)$/,
             },
             (args) => ({ path: args.path, namespace: "fixture" }),
           );
           builder.onLoad({ filter: /.*/, namespace: "fixture" }, (args) => ({
             contents:
               args.path === "next/navigation"
-                ? `export const usePathname = () => "/services"; export const useRouter = () => ({ refresh() {} }); export const useSearchParams = () => new URLSearchParams(location.search);`
+                ? `export const usePathname = () => "/services"; export const useRouter = () => ({ refresh() { window.fixtureRefreshCount = (window.fixtureRefreshCount || 0) + 1; } }); export const useSearchParams = () => new URLSearchParams(location.search);`
                 : args.path === "next/link"
                   ? `import React from "react"; export const useLinkStatus = () => ({ pending: false }); export default function Link({children, scroll, onClick, ...props}) { return React.createElement("a", {...props, onClick(event) { event.preventDefault(); onClick?.(event); }}, children); }`
                   : `
@@ -527,12 +527,29 @@ test("menus and notification details retain closing content and reopen", async (
     await detail
       .getByRole("button", { name: "Close notification details" })
       .click();
-    const retained = page
-      .locator(".notification-detail-dialog")
-      .filter({
-        has: page.getByText("Invoice details for preview 0", { exact: true }),
-      });
+    const retained = page.locator(".notification-detail-dialog").filter({
+      has: page.getByText("Invoice details for preview 0", { exact: true }),
+    });
     await expect(retained).toBeAttached();
     await expect(retained).not.toBeVisible();
   }
+});
+
+test("opening and dismissing a record does not refresh the entire page", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture");
+  await page.getByRole("button", { name: "View draft invoice" }).click();
+  await expect(
+    page.getByRole("dialog").getByText("Draft invoice", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Close dialog", exact: true }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        (window as typeof window & { fixtureRefreshCount?: number })
+          .fixtureRefreshCount || 0,
+    ),
+  ).toBe(0);
 });

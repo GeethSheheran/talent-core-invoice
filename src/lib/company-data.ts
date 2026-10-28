@@ -15,7 +15,7 @@ export async function loadCompanySection(id: string, section: CompanySection) {
   } = { rows: [], balances: [], error: "" };
   try {
     if (section === "statement")
-      result.balances = (await balances()).filter(
+      result.balances = (await balances(id)).filter(
         (row) => row.company_id === id,
       );
     else if (section !== "overview")

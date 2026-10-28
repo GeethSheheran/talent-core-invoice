@@ -27,9 +27,15 @@ export default async function EditPage({
   if (!kind) notFound();
   const [record, companies, projects, services] = await Promise.all([
     oneRow(tableMap[collection as Collection], id),
-    allRows("companies"),
-    allRows("projects"),
-    allRows("service_catalogue"),
+    ["company", "service"].includes(kind)
+      ? Promise.resolve([])
+      : allRows("companies"),
+    ["agreement", "proposal", "invoice", "payment"].includes(kind)
+      ? allRows("projects")
+      : Promise.resolve([]),
+    ["agreement", "invoice"].includes(kind)
+      ? allRows("service_catalogue")
+      : Promise.resolve([]),
   ]);
   if (!record) notFound();
   const initial = { ...record } as unknown as Record<string, Json>;
@@ -37,12 +43,16 @@ export default async function EditPage({
     notFound();
   if (kind === "expense" && initial.invoice_id) notFound();
   if (kind === "invoice")
-    initial.items = (await allRows("invoice_items"))
+    initial.items = (
+      await allRows("invoice_items", undefined, { invoice_id: id })
+    )
       .filter((i) => i.invoice_id === id)
       .sort((a, b) => a.position - b.position)
       .map((i) => ({ ...i, quantity: String(i.quantity) }));
   if (kind === "agreement") {
-    const versions = (await allRows("agreement_services"))
+    const versions = (
+      await allRows("agreement_services", undefined, { agreement_id: id })
+    )
       .filter((v) => v.agreement_id === id)
       .sort((a, b) => b.effective_from.localeCompare(a.effective_from));
     initial.items = versions[0]?.items || [];

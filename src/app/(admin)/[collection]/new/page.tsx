@@ -34,9 +34,15 @@ export default async function NewPage({
   if (!kind) notFound();
   const query = await searchParams;
   const [companies, projects, services] = await Promise.all([
-    allRows("companies"),
-    allRows("projects"),
-    allRows("service_catalogue"),
+    ["company", "service"].includes(kind)
+      ? Promise.resolve([])
+      : allRows("companies"),
+    ["agreement", "proposal", "invoice", "payment"].includes(kind)
+      ? allRows("projects")
+      : Promise.resolve([]),
+    ["agreement", "invoice"].includes(kind)
+      ? allRows("service_catalogue")
+      : Promise.resolve([]),
   ]);
   const initial: Record<string, Json> = {};
   if (query.company) {
@@ -51,7 +57,10 @@ export default async function NewPage({
       initial.company_id = p.company_id;
       initial.currency = p.currency;
       if (kind === "invoice") {
-        const invoices = await allRows("invoices");
+        const invoices = await allRows("invoices", undefined, {
+          project_id: p.id,
+          state: "issued",
+        });
         const billed = invoices
           .filter((i) => i.project_id === p.id && i.state === "issued")
           .reduce((s, i) => s + i.total, 0);
@@ -87,9 +96,14 @@ export default async function NewPage({
   let setupError = "";
   if (kind === "invoice" || kind === "expense") {
     try {
-      pendingExpenses = (await allRows("company_expenses")).filter(
-        (e) => !e.invoice_id,
-      );
+      pendingExpenses = (
+        await allRows(
+          "company_expenses",
+          undefined,
+          { invoice_id: null },
+          kind === "expense" ? 1 : undefined,
+        )
+      ).filter((e) => !e.invoice_id);
     } catch (error) {
       setupError = recordLoadMessage(error);
     }

@@ -7,6 +7,11 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/auth/require-admin", () => ({ requireAdmin: mocks.admin }));
 vi.mock("@/lib/db/repositories/records", () => ({
+  createRecordReader: () => ({
+    allRows: mocks.allRows,
+    oneRow: mocks.oneRow,
+    balances: mocks.balances,
+  }),
   allRows: mocks.allRows,
   oneRow: mocks.oneRow,
   balances: mocks.balances,
@@ -145,7 +150,10 @@ it("shows only eligible pending expenses for a draft invoice", async () => {
       incurred_on: "2026-01-01",
     },
   ]);
-  expect(mocks.allRows).toHaveBeenCalledWith("company_expenses", company);
+  expect(mocks.allRows).toHaveBeenCalledWith("company_expenses", company, {
+    invoice_id: null,
+    currency: "LKR",
+  });
 });
 it("does not offer pending expense attachment on issued invoices", async () => {
   mocks.oneRow.mockResolvedValue({
@@ -156,5 +164,8 @@ it("does not offer pending expense attachment on issued invoices", async () => {
   });
   const result = await loadCompanyRecord(company, "invoices", record);
   expect(result.data?.pendingExpenses).toEqual([]);
-  expect(mocks.allRows).not.toHaveBeenCalledWith("company_expenses", company);
+  expect(mocks.allRows).not.toHaveBeenCalledWith("company_expenses", company, {
+    invoice_id: null,
+    currency: "LKR",
+  });
 });

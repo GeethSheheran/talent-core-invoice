@@ -5,8 +5,10 @@ import {
   type ActivityTarget,
 } from "@/lib/notifications/feed";
 import type { Database, Tables } from "@/lib/db/database.types";
-export async function loadNotificationPreview() {
-  const { db } = await renderAdmin();
+export async function loadNotificationPreview(
+  client?: Awaited<ReturnType<typeof renderAdmin>>["db"],
+) {
+  const db = client ?? (await renderAdmin()).db;
   async function recent<T extends keyof Database["public"]["Tables"]>(
     table: T,
   ) {
