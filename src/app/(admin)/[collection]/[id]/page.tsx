@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { CompanyDetail } from "@/components/company-detail";
+import type { Tables } from "@/lib/db/database.types";
 import { InvoiceWorkflow } from "@/components/invoice-workflow";
 import { notFound } from "next/navigation";
 import {
@@ -9,7 +11,6 @@ import {
   type Collection,
 } from "@/lib/db/repositories/records";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { RecordsTable } from "@/components/records-table";
 import { FinancialForm } from "@/components/financial-form";
 import { DocumentButton } from "@/components/document-button";
 import { formatMoney } from "@/lib/billing/money";
@@ -17,13 +18,22 @@ import type { Json } from "@/lib/db/database.types";
 import type { Balance } from "@/lib/billing/allocations";
 export default async function DetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ collection: string; id: string }>;
+  searchParams: Promise<{ section?: string }>;
 }) {
   const { collection, id } = await params;
   if (!(collection in tableMap)) notFound();
   const record = await oneRow(tableMap[collection as Collection], id);
   if (!record) notFound();
+  if (collection === "companies")
+    return (
+      <CompanyDetail
+        company={record as Tables<"companies">}
+        selected={(await searchParams).section}
+      />
+    );
   const r = record as unknown as Record<string, Json>;
   const title = String(
     r.number ||
@@ -335,82 +345,6 @@ export default async function DetailPage({
             Create balance draft
           </Link>
         </div>
-      )}
-      {collection === "companies" && (
-        <>
-          <nav className="tabs" aria-label="Company sections">
-            {[
-              "overview",
-              "projects",
-              "proposals",
-              "invoices",
-              "payments",
-              "expenses",
-              "statement",
-            ].map((s) => (
-              <a key={s} href={"#" + s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </a>
-            ))}
-          </nav>
-          {await Promise.all(
-            (
-              [
-                "projects",
-                "proposals",
-                "invoices",
-                "payments",
-                "expenses",
-              ] as const
-            ).map(async (key) => {
-              const rows = (await allRows(tableMap[key])).filter(
-                (row) => row.company_id === id,
-              );
-              return (
-                <section id={key} className="card" key={key}>
-                  <div className="heading">
-                    <h2 style={{ textTransform: "capitalize" }}>{key}</h2>
-                    <Link
-                      className="button secondary"
-                      href={"/" + key + "/new?company=" + id}
-                    >
-                      + New
-                    </Link>
-                  </div>
-                  <RecordsTable
-                    rows={rows}
-                    collection={key}
-                    companies={names}
-                  />
-                </section>
-              );
-            }),
-          )}
-          <section className="card" id="statement">
-            <h2>Current statement</h2>
-            <p>
-              Live balances include confirmed payments and credit corrections,
-              grouped by currency.
-            </p>
-            {[
-              ...new Set([
-                currency,
-                ...balanceRows
-                  .filter((b) => b.company_id === id)
-                  .map((b) => b.currency),
-              ]),
-            ].map((c) => (
-              <p key={c}>
-                <a
-                  className="button secondary"
-                  href={"/api/companies/" + id + "/statement?currency=" + c}
-                >
-                  Download {c} statement
-                </a>
-              </p>
-            ))}
-          </section>
-        </>
       )}
     </>
   );

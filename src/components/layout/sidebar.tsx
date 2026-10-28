@@ -34,7 +34,7 @@ export function Sidebar() {
     <aside className="sidebar">
       <Link className="wordmark" href="/dashboard">
         <span className="mark">L</span>ledger
-        <span style={{ color: "#78945a" }}>.</span>
+        <span className="muted">.</span>
       </Link>
       <div className="eyebrow" style={{ padding: "0 13px 12px" }}>
         Workspace
@@ -44,20 +44,15 @@ export function Sidebar() {
           <Link
             key={href}
             href={href}
+            aria-current={path.startsWith(href) ? "page" : undefined}
             className={"nav-link " + (path.startsWith(href) ? "active" : "")}
           >
-            <Icon size={17} />
+            <Icon size={18} aria-hidden="true" />
             {label}
           </Link>
         ))}
       </nav>
       <div className="sidebar-bottom">
-        <form action={signOut}>
-          <button className="sidebar-signout" type="submit">
-            <LogOut size={18} aria-hidden="true" />
-            Sign out
-          </button>
-        </form>
         <div className="sidebar-foot">
           <strong>Private workspace</strong>
           <br />
@@ -65,6 +60,12 @@ export function Sidebar() {
           <br />
           <span className="muted">Asia / Colombo</span>
         </div>
+        <form action={signOut}>
+          <button className="sidebar-signout" type="submit">
+            <LogOut size={18} aria-hidden="true" />
+            Sign out
+          </button>
+        </form>
       </div>
     </aside>
   );

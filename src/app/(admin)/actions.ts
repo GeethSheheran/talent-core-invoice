@@ -21,7 +21,7 @@ const paths: Record<RecordKind, string> = {
   proposal: "proposals",
   settings: "settings",
 };
-export async function saveRecord(_: string, form: FormData) {
+async function persistRecord(form: FormData, companyId?: string) {
   const { db } = await requireAdmin();
   const kind = z
     .enum([
@@ -40,6 +40,8 @@ export async function saveRecord(_: string, form: FormData) {
   try {
     const raw = JSON.parse(String(form.get("payload")));
     const data = schemas[kind].parse(raw);
+    if (companyId && (!("company_id" in data) || data.company_id !== companyId))
+      return { error: "The record must belong to this company." };
     const supplied = form.get("id");
     id = supplied ? z.uuid().parse(supplied) : null;
     const result = await db.rpc("save_record", {
@@ -47,14 +49,33 @@ export async function saveRecord(_: string, form: FormData) {
       p_id: id,
       p_data: data as Json,
     });
-    if (result.error) return result.error.message;
+    if (result.error) return { error: result.error.message };
     id = result.data;
   } catch (error) {
-    return error instanceof z.ZodError
-      ? error.issues.map((i) => i.path.join(".") + ": " + i.message).join("; ")
-      : "Invalid form data.";
+    return {
+      error:
+        error instanceof z.ZodError
+          ? error.issues
+              .map((i) => i.path.join(".") + ": " + i.message)
+              .join("; ")
+          : "Invalid form data.",
+    };
   }
   revalidatePath("/", "layout");
+  return { id: id!, kind };
+}
+export async function saveCompanyRecord(companyId: string, form: FormData) {
+  await requireAdmin();
+  const company = z.uuid().parse(companyId);
+  // Company dialogs only create records; editing cannot be redirected to another owner.
+  if (form.get("id"))
+    return { error: "Use the record editor to edit an existing record." };
+  return persistRecord(form, company);
+}
+export async function saveRecord(_: string, form: FormData) {
+  const result = await persistRecord(form);
+  if ("error" in result) return result.error || "Unable to save.";
+  const { kind, id } = result;
   redirect(
     "/" +
       paths[kind] +
@@ -67,7 +88,24 @@ export async function financialAction(_: string, form: FormData) {
   const id = z.uuid().parse(form.get("id"));
   try {
     let error: { message: string } | null = null;
-    if (action === "issue_invoice")
+    if (action === "attach_pending_expenses") {
+      const expenses = z
+        .array(
+          z.object({
+            id: z.uuid(),
+            amount: z.number().int().positive().max(1e12),
+          }),
+        )
+        .min(1)
+        .max(300)
+        .parse(JSON.parse(String(form.get("expenses"))));
+      ({ error } = await db.rpc("attach_pending_expenses", {
+        p_invoice: id,
+        p_expenses: expenses,
+      }));
+      if (error && "code" in error && error.code === "PGRST202")
+        return "Expense attachment needs the latest database update. Your draft has not changed.";
+    } else if (action === "issue_invoice")
       ({ error } = await db.rpc("issue_invoice", {
         p_id: id,
         p_brand: await brandSnapshot(),

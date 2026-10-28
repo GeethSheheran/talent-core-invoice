@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   allRows,
+  recordLoadMessage,
   tableMap,
   type Collection,
 } from "@/lib/db/repositories/records";
@@ -23,10 +24,25 @@ export default async function ListPage({
   const key = collection as Collection;
   const query = await searchParams;
   if (collection === "notifications") return <NotificationsPage />;
-  const [data, companies] = await Promise.all([
-    allRows(tableMap[key]),
+  const [result, companies] = await Promise.all([
+    allRows(tableMap[key])
+      .then((data) => ({ data, error: "" }))
+      .catch((error) => ({ data: [], error: recordLoadMessage(error) })),
     allRows("companies"),
   ]);
+  if (result.error)
+    return (
+      <section className="card">
+        <h1>{collection.charAt(0).toUpperCase() + collection.slice(1)}</h1>
+        <p className="error" role="alert">
+          {result.error}
+        </p>
+        <Link className="button secondary" href={`/${collection}`}>
+          Retry
+        </Link>
+      </section>
+    );
+  const data = result.data;
   if (collection === "payments") {
     const payments = (data as Tables<"payments">[])
       .map(

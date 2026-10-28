@@ -2,7 +2,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { readdir, readFile } from "node:fs/promises";
 export const ADMIN = "10000000-0000-4000-8000-000000000001";
 export const OUTSIDER = "10000000-0000-4000-8000-000000000002";
-export async function database(beforeMigrations?: string) {
+export async function database(beforeMigrations?: string, through?: string) {
   const db = new PGlite();
   await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
  create schema auth;create table auth.users(id uuid primary key,email text);
@@ -12,7 +12,9 @@ export async function database(beforeMigrations?: string) {
  insert into auth.users values('${ADMIN}','admin@example.test'),('${OUTSIDER}','outsider@example.test');`);
   if (beforeMigrations) await db.exec(beforeMigrations);
   for (const file of (await readdir("supabase/migrations"))
-    .filter((f) => f.endsWith(".sql"))
+    .filter(
+      (f) => f.endsWith(".sql") && (!through || f.slice(0, 14) <= through),
+    )
     .sort())
     await db.exec(await readFile("supabase/migrations/" + file, "utf8"));
   await db.exec(

@@ -7,8 +7,10 @@ export function RecordsTable({
   rows,
   collection,
   companies = {},
+  renderRecord,
 }: {
   rows: Record<string, Json | undefined>[];
+  renderRecord?: (id: string, label: string) => React.ReactNode;
   collection: string;
   companies?: Record<string, string>;
 }) {
@@ -49,6 +51,8 @@ export function RecordsTable({
                 <td>
                   {collection === "notifications" ? (
                     label
+                  ) : renderRecord ? (
+                    renderRecord(id, label)
                   ) : (
                     <Link href={"/" + collection + "/" + id}>{label}</Link>
                   )}

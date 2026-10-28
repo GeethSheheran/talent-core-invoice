@@ -324,3 +324,99 @@ it("rejects invalid periods and repeat intervals without leaving an invoice or e
   await expect(settings({ billing_day: 31 })).rejects.toThrow(/settings/);
   expect((await db.query("select * from invoices")).rows).toHaveLength(0);
 });
+
+it("attaches reviewed late expenses to a draft once and recomputes tax without changing service rows", async () => {
+  const c = await company(db);
+  const id = await invoice(db, c, 10000, { discount: 500, tax_bps: 1000 });
+  const e = await expense(c);
+  const attach = [{ id: e, amount: 2500 }];
+  expect(await rpc(db, "attach_pending_expenses", [id, attach])).toBe(1);
+  expect(await rpc(db, "attach_pending_expenses", [id, attach])).toBe(0);
+  expect(
+    (
+      await db.query(
+        "select subtotal,discount,tax,total from invoices where id=$1",
+        [id],
+      )
+    ).rows,
+  ).toEqual([{ subtotal: 12500, discount: 500, tax: 1200, total: 13200 }]);
+  expect(
+    (
+      await db.query(
+        "select count(*)::int as count from invoice_items where invoice_id=$1",
+        [id],
+      )
+    ).rows,
+  ).toEqual([{ count: 2 }]);
+  await issue(db, id);
+  expect(await balance(db, id)).toBe(13200);
+  await expect(
+    rpc(db, "attach_pending_expenses", [id, attach]),
+  ).rejects.toThrow(/Only draft/);
+});
+it("rejects other companies, currencies, future costs, changed amounts, and duplicate selections", async () => {
+  const c = await company(db),
+    other = await company(db);
+  const id = await invoice(db, c);
+  for (const [owner, extra, reason] of [
+    [other, {}, /company\/currency/],
+    [c, { currency: "USD" }, /company\/currency/],
+    [c, { incurred_on: "2099-01-01" }, /Future/],
+  ] as const) {
+    const e = await expense(owner, extra);
+    await expect(
+      rpc(db, "attach_pending_expenses", [id, [{ id: e, amount: 2500 }]]),
+    ).rejects.toThrow(reason);
+  }
+  const e = await expense(c);
+  await expect(
+    rpc(db, "attach_pending_expenses", [id, [{ id: e, amount: 1 }]]),
+  ).rejects.toThrow(/amount changed/);
+  await expect(
+    rpc(db, "attach_pending_expenses", [
+      id,
+      [
+        { id: e, amount: 2500 },
+        { id: e, amount: 2500 },
+      ],
+    ]),
+  ).rejects.toThrow(/unique/);
+  const next = await invoice(db, c);
+  await expect(
+    rpc(db, "attach_pending_expenses", [id, [{ id: e, amount: 2500 }]]),
+  ).rejects.toThrow(/another invoice/);
+  expect(
+    (await db.query("select invoice_id from company_expenses where id=$1", [e]))
+      .rows,
+  ).toEqual([{ invoice_id: next }]);
+});
+it("rolls back expense attachment when the invoice exceeds the monetary limit", async () => {
+  const c = await company(db),
+    id = await invoice(db, c, 1e12);
+  const e = await expense(c);
+  await expect(
+    rpc(db, "attach_pending_expenses", [id, [{ id: e, amount: 2500 }]]),
+  ).rejects.toThrow();
+  expect(
+    (await db.query("select invoice_id from company_expenses where id=$1", [e]))
+      .rows,
+  ).toEqual([{ invoice_id: null }]);
+  expect(
+    (await db.query("select total from invoices where id=$1", [id])).rows,
+  ).toEqual([{ total: 1e12 }]);
+});
+it("requires administrator authorization and denies anonymous expense attachment", async () => {
+  const c = await company(db),
+    id = await invoice(db, c),
+    e = await expense(c);
+  await db.query("select set_config('request.jwt.claim.sub',$1,false)", [
+    OUTSIDER,
+  ]);
+  await expect(
+    rpc(db, "attach_pending_expenses", [id, [{ id: e, amount: 2500 }]]),
+  ).rejects.toThrow(/Administrator/);
+  await db.exec("set role anon");
+  await expect(
+    rpc(db, "attach_pending_expenses", [id, [{ id: e, amount: 2500 }]]),
+  ).rejects.toThrow(/permission/);
+});

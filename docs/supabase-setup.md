@@ -20,4 +20,18 @@ Open `.artifacts/supabase-setup.sql`, copy the entire file into the correct proj
 
 SQL Editor does not record CLI migration history. Before subsequently using `db push`, verify the applied schema and reconcile these migration versions with `supabase migration repair` (inspect command help first).
 
-The configured hosted project's Auth endpoint and JWKS are reachable, but the application tables were missing at the last check. Connector permissions prevent remote migration execution and verification here. PGlite tests cover SQL/RLS and the generated setup bundle; hosted Auth/Storage integration and Supabase advisors remain unverified. SQL activation grants application access; connector authorization is separate.
+## Expenses unavailable / company page errors
+
+Run `npm run check:supabase`. A `PGRST205` response for `company_expenses` means the table is unavailable in the Data API schema. Do not treat this as an empty expenses list: invoice creation needs the table to include pending costs correctly.
+
+For an existing installation that already has the three core migrations, review and apply only `supabase/migrations/20261022112205_expenses_and_recurring_schedules.sql` to the configured project. It creates company expenses and updates the transactional billing functions and recurring schedule fields. Back up the database and verify the migration has not already been applied before executing it; it is not a repeatable setup script. Do not rerun the full first-time setup or reset the database. Run `npm run test:integration` before applying, then `npm run check:supabase` afterward and verify expenses/invoice creation with an administrator session.
+
+At the 2026-10-27 check, Auth and JWKS responded successfully, the expenses API returned `404 / PGRST205`, and all server-key schema probes returned `401`. Update `SUPABASE_SECRET_KEY` in `.env.local` with a valid server secret for the same project (never expose it in browser configuration), then restart the app. The connected Supabase account cannot access this configured project, so remote migration execution remains blocked. SQL administrator activation grants application access; connector authorization is separate.
+
+Company sections load independently. An unavailable expense section shows a setup message without preventing the company overview, payments, or other available sections from opening. Invoice creation is intentionally blocked until pending expenses can be read; it must never silently omit existing costs.
+
+## Attach new expenses to an existing draft
+
+Apply `supabase/migrations/20261027093351_attach_pending_expenses.sql` after the expenses and recurring schedules migration. This adds the administrator-only `attach_pending_expenses` RPC; it does not modify existing records during deployment. The company invoice popup lists matching, unassigned expenses incurred by today in Asia/Colombo. Clicking **Add these expenses to invoice** attaches the reviewed costs and recalculates totals in one transaction. Changed amounts, another invoice's expenses, and issued invoices are rejected. Retries cannot add the same expense twice.
+
+The migration is tested locally, but has not been applied to the hosted project through this connection because project access is denied. Run the migration in the owning project's SQL Editor, or authorize the owning Supabase connection, before using the new attachment action.

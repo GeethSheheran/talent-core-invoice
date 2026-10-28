@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
-import { allRows, oneRow } from "@/lib/db/repositories/records";
+import {
+  allRows,
+  oneRow,
+  recordLoadMessage,
+} from "@/lib/db/repositories/records";
 import { RecordEditor } from "@/components/record-editor";
 import type { RecordKind } from "@/lib/validation/schemas";
 import type { Json } from "@/lib/db/database.types";
@@ -78,6 +82,18 @@ export default async function NewPage({
       initial.items = [{ description: p.title, quantity: "1", rate: p.price }];
     }
   }
+  let pendingExpenses: Awaited<ReturnType<typeof allRows<"company_expenses">>> =
+    [];
+  let setupError = "";
+  if (kind === "invoice" || kind === "expense") {
+    try {
+      pendingExpenses = (await allRows("company_expenses")).filter(
+        (e) => !e.invoice_id,
+      );
+    } catch (error) {
+      setupError = recordLoadMessage(error);
+    }
+  }
   return (
     <>
       <div className="heading">
@@ -91,18 +107,23 @@ export default async function NewPage({
           </p>
         </div>
       </div>
-      <RecordEditor
-        pendingExpenses={
-          kind === "invoice"
-            ? (await allRows("company_expenses")).filter((e) => !e.invoice_id)
-            : []
-        }
-        kind={kind}
-        initial={initial}
-        companies={companies.filter((c) => kind === "payment" || !c.archived)}
-        projects={projects}
-        services={services.filter((s) => !s.archived)}
-      />
+      {setupError ? (
+        <section className="card">
+          <h2>Form unavailable</h2>
+          <p className="error" role="alert">
+            {setupError}
+          </p>
+        </section>
+      ) : (
+        <RecordEditor
+          pendingExpenses={pendingExpenses}
+          kind={kind}
+          initial={initial}
+          companies={companies.filter((c) => kind === "payment" || !c.archived)}
+          projects={projects}
+          services={services.filter((s) => !s.archived)}
+        />
+      )}
     </>
   );
 }

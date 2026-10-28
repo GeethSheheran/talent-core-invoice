@@ -188,8 +188,14 @@ export function RecordEditor({
   projects = [],
   services = [],
   pendingExpenses = [],
+  onSave,
+  lockCompany = false,
+  inlineReview = false,
 }: {
   kind: RecordKind;
+  onSave?: (form: FormData) => Promise<string>;
+  lockCompany?: boolean;
+  inlineReview?: boolean;
   id?: string;
   initial?: Record<string, Json | undefined>;
   companies?: Option[];
@@ -202,7 +208,10 @@ export function RecordEditor({
     currency: string;
   }[];
 }) {
-  const [message, action, pending] = useActionState(saveRecord, "");
+  const [message, action, pending] = useActionState(
+    onSave ? (_: string, form: FormData) => onSave(form) : saveRecord,
+    "",
+  );
   const [payload, setPayload] = useState("");
   const [review, setReview] = useState(false);
   const [error, setError] = useState("");
@@ -332,6 +341,7 @@ export function RecordEditor({
           prepare(e.currentTarget);
         }}
         className="card"
+        hidden={inlineReview && review}
       >
         <div className="grid">
           {needsCompany && (
@@ -343,7 +353,7 @@ export function RecordEditor({
                 defaultValue={String(initial.company_id || "")}
                 onChange={(e) => setCompanyId(e.target.value)}
                 required
-                disabled={Boolean(id)}
+                disabled={Boolean(id) || lockCompany}
               >
                 <option value="">Select a company</option>
                 {companies.map((c) => (
@@ -352,7 +362,7 @@ export function RecordEditor({
                   </option>
                 ))}
               </select>
-              {id && (
+              {(id || lockCompany) && (
                 <input
                   type="hidden"
                   name="company_id"
@@ -768,13 +778,17 @@ export function RecordEditor({
       </form>
       {review && (
         <div
-          className="review"
-          role="dialog"
-          aria-modal="true"
+          className={inlineReview ? "inline-review" : "review"}
+          role={inlineReview ? "region" : "dialog"}
+          aria-modal={inlineReview ? undefined : true}
           aria-labelledby="review-title"
           onKeyDown={(e) => {
-            if (e.key === "Escape") setReview(false);
-            if (e.key === "Tab") {
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              e.preventDefault();
+              setReview(false);
+            }
+            if (e.key === "Tab" && !inlineReview) {
               const targets = [
                 ...e.currentTarget.querySelectorAll<HTMLElement>(
                   "button:not([disabled]), a[href], input:not([type=hidden]):not([disabled])",
@@ -907,6 +921,7 @@ export function RecordEditor({
                 <button
                   type="button"
                   className="secondary"
+                  disabled={pending}
                   onClick={() => setReview(false)}
                 >
                   Back to editing

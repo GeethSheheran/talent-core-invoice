@@ -781,6 +781,7 @@ outstanding: number | null;
 accept_proposal: { Args: {p_id: string;}; Returns: undefined; };
 allocate_credit: { Args: {p_id: string;p_allocations: Json;p_key: string;}; Returns: undefined; };
 apply_credit: { Args: {p_invoice: string;p_amount: number;p_reason: string;p_key: string;}; Returns: string; };
+attach_pending_expenses: { Args: {p_invoice: string;p_expenses: Json;}; Returns: number; };
 claim_jobs: { Args: {p_limit: number;}; Returns: Database['public']['Tables']['outbox_jobs']['Row'][]; };
 confirm_payment: { Args: {p_id: string;p_allocations: Json;p_brand: Json;}; Returns: Json; };
 generate_monthly_draft: { Args: {p_agreement: string;p_period: string;}; Returns: string; };

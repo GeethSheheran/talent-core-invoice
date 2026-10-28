@@ -13,7 +13,9 @@ export function FinancialForm({
   invoices = [],
   compact = false,
   emailMode = "configured",
+  onSuccess,
 }: {
+  onSuccess?: () => Promise<void>;
   emailMode?: "mock" | "configured";
   compact?: boolean;
   action: string;
@@ -24,7 +26,14 @@ export function FinancialForm({
   company?: string;
   invoices?: (Balance & { number: string | null })[];
 }) {
-  const [message, submit, pending] = useActionState(financialAction, "");
+  const [message, submit, pending] = useActionState(
+    async (previous: string, form: FormData) => {
+      const result = await financialAction(previous, form);
+      if (result === "Saved successfully.") await onSuccess?.();
+      return result;
+    },
+    "",
+  );
   const [review, setReview] = useState(false);
   const [key] = useState(() => crypto.randomUUID());
   const allocate = action === "confirm_payment" || action === "allocate_credit";

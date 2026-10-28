@@ -64,9 +64,6 @@ export function NewMenu() {
           ].map(([label, href]) => (
             <Link key={label} href={href} onClick={() => setOpen(false)}>
               {label}
-              {label === "Receipt" && (
-                <small>Record and confirm a payment</small>
-              )}
             </Link>
           ))}
         </nav>

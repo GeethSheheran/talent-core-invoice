@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { NotificationPreview } from "@/components/notification-preview";
+import { loadNotificationPreview } from "@/lib/notifications/preview";
 import { NewMenu } from "@/components/new-menu";
 import { BillingChart } from "@/components/billing-chart";
 import { allRows, balances } from "@/lib/db/repositories/records";
@@ -17,13 +19,12 @@ export default async function Dashboard({
   )
     ? query.currency!
     : "LKR";
-  const [allInvoices, allPayments, companies, allocations, events] =
+  const [allInvoices, allPayments, companies, notificationPreview] =
     await Promise.all([
       balances(),
       allRows("payments"),
       allRows("companies"),
-      allRows("payment_allocations"),
-      allRows("notification_events"),
+      loadNotificationPreview(),
     ]);
   const invoices = allInvoices;
   const payments = allPayments;
@@ -40,27 +41,6 @@ export default async function Dashboard({
     today.slice(0, 7),
     today,
     currency,
-  );
-  const credits = payments
-    .filter((p) => p.state === "confirmed" && p.currency === currency)
-    .reduce(
-      (s, p) =>
-        s +
-        p.amount -
-        allocations
-          .filter((a) => a.payment_id === p.id)
-          .reduce((sum, a) => sum + a.amount, 0),
-      0,
-    );
-  const reminders = events.filter(
-    (e) =>
-      !e.read_at &&
-      invoices.some(
-        (i) =>
-          i.id === e.invoice_id &&
-          i.currency === currency &&
-          Number(i.outstanding) > 0,
-      ),
   );
   const months = Array.from({ length: 6 }, (_, n) => {
     const d = new Date(today + "T00:00:00Z");
@@ -97,7 +77,9 @@ export default async function Dashboard({
     <>
       <div className="heading">
         <div>
+          {/* <div className="eyebrow">Your business at a glance</div> */}
           <h1>Overview</h1>
+          {/* <p>A clear view of your billing, payments, and what’s next.</p> */}
         </div>
         <div className="actions">
           {availableCurrencies.length > 1 && (
@@ -138,66 +120,42 @@ export default async function Dashboard({
           </div>
         ))}
       </div>
-      <div className="grid">
+      <div className="grid dashboard-activity-grid">
         <section className="card">
           <div className="heading">
             <h2>Billing activity</h2>
             <span className="muted">Last 6 months · {currency}</span>
           </div>
           <BillingChart months={months} currency={currency} />
-          <p className="muted" style={{ fontSize: 12, paddingTop: 12 }}>
-            ● Issued charges &nbsp; <span style={{ color: "#98ac76" }}>●</span>{" "}
-            Confirmed collections
+          <p className="chart-legend">
+            <span>Issued charges</span>
+            <span>Confirmed collections</span>
           </p>
-          <details>
-            <summary>View monthly values</summary>
-            <table>
-              <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>Issued</th>
-                  <th>Collected</th>
-                </tr>
-              </thead>
-              <tbody>
-                {months.map((m) => (
-                  <tr key={m.month}>
-                    <td>{m.month}</td>
-                    <td>{formatMoney(m.issued, currency)}</td>
-                    <td>{formatMoney(m.collected, currency)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </details>
         </section>
-        <section className="card">
-          <h2>Needs your attention</h2>
-          <div className="stack">
-            <Link href="/invoices">
-              <strong>{totals.partial}</strong> partially paid invoices
-            </Link>
-            <Link href="/notifications">
-              <strong>{reminders.length}</strong> reminder events with open
-              balances
-            </Link>
-            <Link href="/payments">
-              <strong>{formatMoney(credits, currency)}</strong> available
-              payment credit
+        <section className="card dashboard-notifications">
+          <div className="heading">
+            <h2>Latest notifications</h2>
+            <Link className="view-all-link" href="/notifications">
+              View all →
             </Link>
           </div>
-          <div className="notice" style={{ marginTop: 26 }}>
-            Monthly invoices stay in draft until you review and issue them.
-          </div>
-          <Link className="button secondary" href="/payments/new">
-            Record payment →
-          </Link>
+          {notificationPreview.error ? (
+            <p className="error" role="alert">
+              {notificationPreview.error}
+            </p>
+          ) : (
+            <NotificationPreview
+              items={notificationPreview.items.slice(0, 5)}
+            />
+          )}
         </section>
       </div>
       <section className="card">
         <div className="heading">
           <h2>Recent invoices</h2>
-          <Link href="/invoices">View all →</Link>
+          <Link className="view-all-link" href="/invoices">
+            View all →
+          </Link>
         </div>
         <RecordsTable
           collection="invoices"

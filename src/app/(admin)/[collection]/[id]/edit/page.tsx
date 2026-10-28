@@ -58,8 +58,10 @@ export default async function EditPage({
   return (
     <>
       <div className="heading">
-        <div className="eyebrow">{collection} / Edit</div>
-        <h1>Edit {kind}</h1>
+        <div>
+          <div className="eyebrow">{collection} / Edit</div>
+          <h1>Edit {kind}</h1>
+        </div>
       </div>
       <RecordEditor
         kind={kind}

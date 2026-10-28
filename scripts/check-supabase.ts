@@ -38,6 +38,11 @@ const results = await Promise.all([
     secret,
   ),
   probe(
+    "Expenses API / publishable key",
+    "/rest/v1/company_expenses?select=id&limit=0",
+    publishable,
+  ),
+  probe(
     "Expenses schema / server key",
     "/rest/v1/company_expenses?select=id&limit=0",
     secret,
