@@ -43,6 +43,8 @@ export const snapshotSchema = z.object({
       discount: amount,
       tax: amount,
       total: amount,
+      credit_applied: amount.optional(),
+      balance_at_issue: amount.optional(),
       notes: z.string(),
     })
     .optional(),
@@ -53,6 +55,7 @@ export const snapshotSchema = z.object({
         quantity: z.union([z.string(), z.number()]),
         rate: amount,
         amount: amount,
+        discount: amount.default(0),
       }),
     )
     .optional(),

@@ -15,6 +15,9 @@ export const lineSchema = z.object({
     .refine((v) => Number(v) > 0 && Number(v) <= 100000),
   rate: money,
   expense_id: uuid.nullable().optional(),
+  discount: money.default(0),
+  service_item_id: uuid.nullable().optional(),
+  billing_type: z.enum(["monthly", "one-time"]).nullable().optional(),
 });
 const companyRef = {
   company_id: uuid,
@@ -30,6 +33,26 @@ export const companySchema = z.object({
   terms_days: z.number().int().min(0).max(365),
   archived: z.boolean().optional(),
 });
+export const packageItemSchema = z
+  .object({
+    id: uuid.optional(),
+    service_id: uuid,
+    name,
+    description: text.optional().default(""),
+    billing_type: z.enum(["one-time", "monthly"]).default("monthly"),
+    quantity: z
+      .string()
+      .regex(/^\d+(\.\d{1,3})?$/)
+      .refine((v) => Number(v) > 0 && Number(v) <= 100000),
+    rate: money,
+    discount: money.default(0),
+    discount_type: z.enum(["amount", "percentage"]).optional(),
+    discount_value: money.optional(),
+  })
+  .refine(
+    (v) => v.discount_type !== "percentage" || (v.discount_value ?? 0) <= 10000,
+    { message: "Percentage cannot exceed 100%" },
+  );
 export const projectSchema = z
   .object({
     ...companyRef,
@@ -37,6 +60,10 @@ export const projectSchema = z
     scope: text,
     price: money,
     advance: money,
+    discount: money.optional().default(0),
+    discount_type: z.enum(["amount", "percentage"]).optional(),
+    discount_value: money.optional(),
+    items: z.array(packageItemSchema).max(300).optional().default([]),
     state: z.enum(["active", "completed", "archived"]).optional(),
   })
   .refine((v) => v.advance <= v.price, {
@@ -93,7 +120,7 @@ export const paymentSchema = z.object({
   ...companyRef,
   amount: money.positive(),
   received_on: date,
-  method: z.enum(["bank", "cash", "other"]),
+  method: z.enum(["bank", "cash", "cheque", "other"]),
   reference: text,
 });
 export const sectionSchema = z.object({ title: name, body: text });
@@ -144,6 +171,11 @@ export const serviceSchema = z.object({
   description: text,
   rate: money,
   currency,
+  billing_type: z.enum(["one-time", "monthly"]).default("monthly"),
+  parent_id: z
+    .union([uuid, z.literal("")])
+    .nullable()
+    .optional(),
   archived: z.boolean().optional(),
 });
 export const schemas = {

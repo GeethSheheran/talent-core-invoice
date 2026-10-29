@@ -52,6 +52,7 @@ reminder_days: number | null;
 discount: number;
 tax_bps: number;
 notes: string;
+managed_services: boolean;
 };Insert: {
 id?: string;
 company_id: string;
@@ -68,6 +69,7 @@ reminder_days?: number | null;
 discount?: number;
 tax_bps?: number;
 notes?: string;
+managed_services?: boolean;
 };Update: {
 id?: string;
 company_id?: string;
@@ -84,6 +86,7 @@ reminder_days?: number | null;
 discount?: number;
 tax_bps?: number;
 notes?: string;
+managed_services?: boolean;
 };Relationships: []; };
 audit_logs: { Row: {
 id: string;
@@ -341,6 +344,9 @@ quantity: number;
 rate: number;
 amount: number;
 expense_id: string | null;
+discount: number;
+service_item_id: string | null;
+billing_type: string | null;
 };Insert: {
 id?: string;
 invoice_id: string;
@@ -350,6 +356,9 @@ quantity: number;
 rate: number;
 amount: number;
 expense_id?: string | null;
+discount?: number;
+service_item_id?: string | null;
+billing_type?: string | null;
 };Update: {
 id?: string;
 invoice_id?: string;
@@ -359,6 +368,9 @@ quantity?: number;
 rate?: number;
 amount?: number;
 expense_id?: string | null;
+discount?: number;
+service_item_id?: string | null;
+billing_type?: string | null;
 };Relationships: []; };
 invoices: { Row: {
 id: string;
@@ -627,6 +639,10 @@ price: number;
 advance: number;
 state: string;
 created_at: string;
+discount: number;
+items: Json;
+discount_type: string;
+discount_value: number;
 };Insert: {
 id?: string;
 company_id: string;
@@ -637,6 +653,10 @@ price: number;
 advance?: number;
 state?: string;
 created_at?: string;
+discount?: number;
+items?: Json;
+discount_type?: string;
+discount_value?: number;
 };Update: {
 id?: string;
 company_id?: string;
@@ -647,6 +667,10 @@ price?: number;
 advance?: number;
 state?: string;
 created_at?: string;
+discount?: number;
+items?: Json;
+discount_type?: string;
+discount_value?: number;
 };Relationships: []; };
 proposal_versions: { Row: {
 id: string;
@@ -721,6 +745,8 @@ rate: number;
 currency: string;
 archived: boolean;
 created_at: string;
+parent_id: string | null;
+billing_type: string;
 };Insert: {
 id?: string;
 name: string;
@@ -729,6 +755,8 @@ rate: number;
 currency?: string;
 archived?: boolean;
 created_at?: string;
+parent_id?: string | null;
+billing_type?: string;
 };Update: {
 id?: string;
 name?: string;
@@ -737,6 +765,8 @@ rate?: number;
 currency?: string;
 archived?: boolean;
 created_at?: string;
+parent_id?: string | null;
+billing_type?: string;
 };Relationships: []; };
 settings: { Row: {
 id: string;
@@ -778,8 +808,10 @@ created_by: string | null;
 outstanding: number | null;
 };Relationships: []; };
 }; Functions: {
+delete_service: { Args: { p_id: string }; Returns: undefined };
 accept_proposal: { Args: {p_id: string;}; Returns: undefined; };
 allocate_credit: { Args: {p_id: string;p_allocations: Json;p_key: string;}; Returns: undefined; };
+apply_available_credit: { Args: {p_invoice: string;}; Returns: number; };
 apply_credit: { Args: {p_invoice: string;p_amount: number;p_reason: string;p_key: string;}; Returns: string; };
 attach_pending_expenses: { Args: {p_invoice: string;p_expenses: Json;}; Returns: number; };
 claim_jobs: { Args: {p_limit: number;}; Returns: Database['public']['Tables']['outbox_jobs']['Row'][]; };

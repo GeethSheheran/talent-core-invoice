@@ -1,5 +1,6 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, X } from "lucide-react";
 import {
   loadCompanyEditor,
@@ -12,6 +13,7 @@ import { PendingInvoiceExpenses } from "@/components/pending-invoice-expenses";
 import { FinancialForm } from "@/components/financial-form";
 import { DocumentButton } from "@/components/document-button";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { AgreedServicesSummary } from "@/components/agreed-services-summary";
 import { formatMoney } from "@/lib/billing/money";
 import type { Json } from "@/lib/db/database.types";
 type EditorData = NonNullable<
@@ -25,12 +27,18 @@ export function CompanyRecordDialog({
   collection,
   recordId,
   label,
+  initialValues,
+  redirectToPayments = false,
 }: {
   companyId: string;
   collection: CompanyCollection;
   recordId?: string;
   label?: string;
+  initialValues?: Record<string, Json>;
+  redirectToPayments?: boolean;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const dialog = useRef<HTMLDialogElement>(null);
   const [editor, setEditor] = useState<EditorData>();
   const [record, setRecord] = useState<RecordData>();
@@ -45,7 +53,9 @@ export function CompanyRecordDialog({
       : "Record details"
     : collection === "payments"
       ? "Record payment"
-      : `New ${kind}`;
+      : kind === "project"
+        ? "Add agreed services"
+        : `New ${kind}`;
   async function readRecord(id: string) {
     const result = await loadCompanyRecord(companyId, collection, id);
     if (result.error) setError(result.error);
@@ -68,7 +78,11 @@ export function CompanyRecordDialog({
       else {
         const result = await loadCompanyEditor(companyId, collection);
         if (result.error) setError(result.error);
-        else setEditor(result.data);
+        else
+          setEditor({
+            ...result.data!,
+            initial: { ...result.data!.initial, ...initialValues },
+          });
       }
     } catch {
       setError("Unable to load this form. Please retry.");
@@ -76,6 +90,16 @@ export function CompanyRecordDialog({
       setBusy(false);
     }
   }
+  const shouldOpen = Boolean(
+    recordId && searchParams.get("record") === recordId,
+  );
+  useEffect(() => {
+    // The URL is an external navigation event selecting this dialog.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (shouldOpen) void open();
+    // Only URL selection opens a saved record; ordinary rerenders do not reopen it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldOpen]);
   async function refreshRecord() {
     if (savedId) await readRecord(savedId);
   }
@@ -93,7 +117,11 @@ export function CompanyRecordDialog({
       >
         {!recordId && <Plus size={16} aria-hidden="true" />}
         {label ||
-          (collection === "payments" ? "Record payment" : `New ${kind}`)}
+          (collection === "payments"
+            ? "Record payment"
+            : kind === "project"
+              ? "Add agreed services"
+              : `New ${kind}`)}
       </button>
       <dialog
         ref={dialog}
@@ -154,6 +182,13 @@ export function CompanyRecordDialog({
                   const result = await saveCompanyRecord(companyId, form);
                   if ("error" in result)
                     return result.error || "Unable to save.";
+                  if (redirectToPayments) {
+                    dialog.current?.close();
+                    router.push(
+                      `/companies/${companyId}?section=payments&record=${result.id}`,
+                    );
+                    return "";
+                  }
                   setSavedId(result.id);
                   setSaved(true);
                   setEditor(undefined);
@@ -212,6 +247,29 @@ export function CompanyRecordDialog({
                     </div>
                   ))}
               </dl>
+              {collection === "projects" && (
+                <AgreedServicesSummary
+                  items={row.items}
+                  discount={Number(row.discount || 0)}
+                  currency={currency}
+                />
+              )}
+              {collection === "projects" && (
+                <div className="actions">
+                  <a
+                    className="button secondary"
+                    href={`/projects/${row.id}/edit`}
+                  >
+                    Edit agreed services
+                  </a>
+                  <a
+                    className="button"
+                    href={`/companies/${companyId}?section=invoices`}
+                  >
+                    Create service invoice
+                  </a>
+                </div>
+              )}
               {record.items.length > 0 && (
                 <div className="table-wrap">
                   <table className="responsive-table">

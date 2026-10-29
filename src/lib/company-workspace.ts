@@ -15,7 +15,7 @@ export async function loadCompanyEditor(
   companyId: string,
   collection: string,
 ) {
-  const { allRows, oneRow } = createRecordReader(db);
+  const { allRows, oneRow, balances } = createRecordReader(db);
   const id = z.uuid().parse(companyId);
   const key = z.enum(companyCollections).parse(collection);
   try {
@@ -23,38 +23,92 @@ export async function loadCompanyEditor(
     if (!company) return { error: "Company not found." };
     if (company.archived && key !== "payments")
       return { error: "Restore this company before adding records." };
-    const [projects, services, pendingExpenses] = await Promise.all([
+    const [
+      projects,
+      services,
+      pendingExpenses,
+      confirmedPayments,
+      allAllocations,
+      invoiceBalances,
+    ] = await Promise.all([
       ["agreements", "proposals", "invoices", "payments"].includes(key)
         ? allRows("projects", id)
         : [],
-      ["agreements", "invoices"].includes(key)
+      ["agreements", "invoices", "projects"].includes(key)
         ? allRows("service_catalogue")
         : [],
       key === "invoices"
         ? allRows("company_expenses", id, { invoice_id: null })
         : [],
+      key === "invoices" ? allRows("payments", id, { state: "confirmed" }) : [],
+      key === "invoices" ? allRows("payment_allocations") : [],
+      key === "invoices" ? balances(id) : [],
     ]);
+    const [serviceInvoiceItems, serviceInvoices] =
+      key === "invoices"
+        ? await Promise.all([allRows("invoice_items"), allRows("invoices", id)])
+        : [[], []];
+    const reservedInvoices = new Set(
+      serviceInvoices
+        .filter((invoice) => invoice.state !== "void")
+        .map((invoice) => invoice.id),
+    );
+    const billedServiceIds = serviceInvoiceItems
+      .filter(
+        (item) => item.service_item_id && reservedInvoices.has(item.invoice_id),
+      )
+      .map((item) => item.service_item_id!);
     // Check the feature before presenting a form that cannot be saved.
     if (key === "expenses" || key === "agreements")
       await allRows(tableMap[key], id, {}, 1);
+
+    const availableCredit = confirmedPayments.reduce((sum, p) => {
+      if (p.currency !== company.currency) return sum;
+      const used = allAllocations
+        .filter((a) => a.payment_id === p.id)
+        .reduce((acc, a) => acc + a.amount, 0);
+      return sum + Math.max(0, p.amount - used);
+    }, 0);
+
+    const previousBalance = invoiceBalances
+      .filter(
+        (b) =>
+          b.company_id === id &&
+          b.currency === company.currency &&
+          (b.outstanding || 0) > 0,
+      )
+      .reduce((sum, b) => sum + (b.outstanding || 0), 0);
+
     return {
       data: {
         initial: { company_id: id, currency: company.currency },
         companies: [{ id, name: company.name, currency: company.currency }],
         projects: projects.map((p) => ({
           id: p.id,
+          company_id: p.company_id,
+          state: p.state,
           name: p.name,
           currency: p.currency,
+          price: p.price,
+          advance: p.advance,
+          discount: p.discount,
+          items: p.items,
         })),
         services: services
           .filter((s) => !s.archived)
           .map((s) => ({
+            id: s.id,
             name: s.name,
             description: s.description,
             rate: s.rate,
             currency: s.currency,
+            parent_id: s.parent_id,
+            billing_type: s.billing_type || "monthly",
           })),
         pendingExpenses: pendingExpenses.filter((e) => !e.invoice_id),
+        availableCredit,
+        billedServiceIds,
+        previousBalance,
       },
     };
   } catch (error) {

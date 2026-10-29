@@ -13,6 +13,7 @@ import {
 import { StatusBadge } from "@/components/ui/status-badge";
 import { FinancialForm } from "@/components/financial-form";
 import { DocumentButton } from "@/components/document-button";
+import { AgreedServicesSummary } from "@/components/agreed-services-summary";
 import { formatMoney } from "@/lib/billing/money";
 import type { Json } from "@/lib/db/database.types";
 import type { Balance } from "@/lib/billing/allocations";
@@ -88,7 +89,16 @@ export default async function DetailPage({
       <div className="heading">
         <div>
           <div className="eyebrow">
-            <Link href={"/" + collection}>{collection}</Link> / Details
+            <Link
+              href={
+                collection === "projects"
+                  ? "/companies/" + r.company_id + "?section=projects"
+                  : "/" + collection
+              }
+            >
+              {collection === "projects" ? "Agreed services" : collection}
+            </Link>{" "}
+            / Details
           </div>
           <h1>{title}</h1>
           <div className="actions">
@@ -337,21 +347,44 @@ export default async function DetailPage({
         />
       )}
       {collection === "projects" && (
-        <div className="actions">
-          <Link
-            className="button"
-            href={"/invoices/new?project=" + id + "&kind=advance"}
-          >
-            Create advance draft
-          </Link>
-          <Link
-            className="button secondary"
-            href={"/invoices/new?project=" + id + "&kind=balance"}
-          >
-            Create balance draft
-          </Link>
-        </div>
+        <AgreedServicesSummary
+          items={r.items}
+          discount={Number(r.discount || 0)}
+          currency={currency}
+        />
       )}
+      {collection === "projects" &&
+        Array.isArray(r.items) &&
+        r.items.length > 0 && (
+          <div className="actions">
+            <Link className="button" href={"/invoices/new?project=" + id}>
+              Create service invoice
+            </Link>
+            <Link
+              className="button secondary"
+              href={"/companies/" + r.company_id + "?section=projects"}
+            >
+              Company agreed services
+            </Link>
+          </div>
+        )}
+      {collection === "projects" &&
+        (!Array.isArray(r.items) || !r.items.length) && (
+          <div className="actions">
+            <Link
+              className="button"
+              href={"/invoices/new?project=" + id + "&kind=advance"}
+            >
+              Create advance draft
+            </Link>
+            <Link
+              className="button secondary"
+              href={"/invoices/new?project=" + id + "&kind=balance"}
+            >
+              Create balance draft
+            </Link>
+          </div>
+        )}
     </>
   );
 }

@@ -5,7 +5,7 @@ const titles: Record<string, string> = {
   dashboard: "Overview",
   companies: "Companies",
   services: "Services",
-  projects: "Projects",
+  projects: "Agreed services",
   agreements: "Agreements",
   proposals: "Proposals",
   invoices: "Invoices",

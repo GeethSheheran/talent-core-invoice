@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation";
+import Link from "@/components/navigation-link";
+import { ArrowLeft } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
 import {
   allRows,
   oneRow,
@@ -33,7 +35,7 @@ export default async function EditPage({
     ["agreement", "proposal", "invoice", "payment"].includes(kind)
       ? allRows("projects")
       : Promise.resolve([]),
-    ["agreement", "invoice"].includes(kind)
+    ["agreement", "invoice", "project", "service"].includes(kind)
       ? allRows("service_catalogue")
       : Promise.resolve([]),
   ]);
@@ -49,6 +51,8 @@ export default async function EditPage({
       .filter((i) => i.invoice_id === id)
       .sort((a, b) => a.position - b.position)
       .map((i) => ({ ...i, quantity: String(i.quantity) }));
+  if (kind === "agreement" && initial.managed_services && initial.project_id)
+    redirect(`/projects/${initial.project_id}/edit`);
   if (kind === "agreement") {
     const versions = (
       await allRows("agreement_services", undefined, { agreement_id: id })
@@ -69,8 +73,8 @@ export default async function EditPage({
     <>
       <div className="heading">
         <div>
-          <div className="eyebrow">{collection} / Edit</div>
-          <h1>Edit {kind}</h1>
+          {kind === "service" ? <Link className="text-link" href="/services"><ArrowLeft size={16} aria-hidden="true" /> {initial.parent_id ? "Sub-service" : "Service"}</Link> : <div className="eyebrow">{collection} / Edit</div>}
+          <h1>Edit {kind === "project" ? "agreed services" : kind === "service" && initial.parent_id ? "sub-service" : kind}</h1>
         </div>
       </div>
       <RecordEditor

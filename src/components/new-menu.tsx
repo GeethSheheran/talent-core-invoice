@@ -58,6 +58,7 @@ export function NewMenu() {
       >
         {[
           ["Company", "/companies/new"],
+          ["Service", "/services/new"],
           ["Proposal", "/proposals/new"],
           ["Invoice", "/invoices/new"],
           ["Expense", "/expenses/new"],

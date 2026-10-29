@@ -1,3 +1,4 @@
+import { InvoiceTracker } from "@/components/invoice-tracker";
 import Link from "@/components/navigation-link";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -8,16 +9,22 @@ export function RecordsTable({
   collection,
   companies = {},
   renderRecord,
+  hideCompany = false,
 }: {
   rows: Record<string, Json | undefined>[];
   renderRecord?: (id: string, label: string) => React.ReactNode;
   collection: string;
+  hideCompany?: boolean;
   companies?: Record<string, string>;
 }) {
   if (!rows.length)
     return (
       <EmptyState
-        title={"No " + collection + " yet"}
+        title={
+          "No " +
+          (collection === "projects" ? "agreed services" : collection) +
+          " yet"
+        }
         body="Saved records will appear here."
       />
     );
@@ -27,12 +34,13 @@ export function RecordsTable({
         <thead>
           <tr>
             <th>{collection === "companies" ? "Company" : "Record"}</th>
-            {collection !== "services" && (
+            {collection !== "services" && !hideCompany && (
               <th>{collection === "companies" ? "Contact" : "Company"}</th>
             )}
             <th>Amount / currency</th>
             <th>Status</th>
             <th>Date</th>
+            {collection === "invoices" && <th>Tracker</th>}
           </tr>
         </thead>
         <tbody>
@@ -63,7 +71,7 @@ export function RecordsTable({
                   )}
                   {row.code && <div className="muted">{String(row.code)}</div>}
                 </td>
-                {collection !== "services" && (
+                {collection !== "services" && !hideCompany && (
                   <td
                     data-label={
                       collection === "companies" ? "Contact" : "Company"
@@ -107,6 +115,11 @@ export function RecordsTable({
                       "",
                   ).slice(0, 10)}
                 </td>
+                {collection === "invoices" && (
+                  <td data-label="Tracker">
+                    <InvoiceTracker row={row} />
+                  </td>
+                )}
               </tr>
             );
           })}

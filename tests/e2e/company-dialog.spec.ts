@@ -20,6 +20,8 @@ test.beforeAll(async () => {
       import { Sidebar } from "./src/components/layout/sidebar";
       import { CollectionList } from "./src/components/collection-list";
       import { NewMenu } from "./src/components/new-menu";
+      import { RecordEditor } from "./src/components/record-editor";
+      import { ServicesList } from "./src/components/services-list";
       import { RecordsTable } from "./src/components/records-table";
       import { WorkspaceTitle } from "./src/components/layout/workspace-title";
       import { BillingChart } from "./src/components/billing-chart";
@@ -27,7 +29,7 @@ test.beforeAll(async () => {
       import { CompanySectionNav } from "./src/components/company-section-nav";
       import { CompanyRecordDialog } from "./src/components/company-record-dialog";
       function NavigationFixture() { const [selected, setSelected] = useState("overview"); return <div><div className="workspace-tools"><SettingsMenu /></div><aside className="company-sidebar" style={{ width: 240 }}><CompanySectionNav companyId="10000000-0000-4000-8000-000000000001" selected={selected} onNavigate={() => setSelected("expenses")} /></aside></div>; }
-      createRoot(document.getElementById("root")).render(location.search.includes("mobile-layout") ? <div className="shell"><Sidebar /><div><header className="workspace-bar"><MobileNavigation /><a href="/dashboard" className="workspace-identity">Ledger <WorkspaceTitle /></a><div className="workspace-tools"><NotificationMenu /><SettingsMenu /></div></header><main className="content"><CollectionList collection={new URLSearchParams(location.search).get("collection") || "services"} rows={[{id: "service-1", name: "Web development", number: "INV-CMP0001-2026-00001", company_id: "company", rate: 12000000, currency: "LKR", active: true, created_at: "2026-10-28"}]} companies={{company: "Example company"}} /><div className="heading"><h1>Overview</h1><div className="actions"><NewMenu /></div></div></main></div></div> : <main className="content"><header className="workspace-bar"><span>Ledger <WorkspaceTitle /></span><div className="workspace-tools"><NotificationMenu /></div></header><h1>Company workspace</h1><NavigationFixture /><NewMenu /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="payments" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" recordId="10000000-0000-4000-8000-000000000002" label="View draft invoice" /><section aria-label="Service catalogue"><RecordsTable collection="services" rows={[{id: "service-1", name: "Web development", rate: 12000, currency: "LKR", active: true}]} /></section><div className="grid dashboard-activity-grid"><section className="card dashboard-billing"><div className="heading"><h2>Billing activity</h2></div><BillingChart months={[{month: "2026-10", issued: 12000, collected: 6000, issuedCompanies: 1, collectedCompanies: 1}]} currency="LKR" /><p className="chart-legend">Issued charges</p></section><section className="card dashboard-notifications"><div className="heading"><h2>Latest notifications</h2></div><NotificationPreview items={Array.from({length: 5}, (_, index) => ({id: "layout-" + index, title: "Invoice update", message: "Invoice saved", status: "recorded", date: "2026-10-27T10:00:00Z", category: "changes", company: "Test Company", record: "INV-001", href: "/invoices/invoice"}))} /></section></div></main>);`,
+      createRoot(document.getElementById("root")).render(location.search.includes("invoice-tracker") ? <RecordsTable hideCompany collection="invoices" rows={[{id: "10000000-0000-4000-8000-000000000030", company_id: "10000000-0000-4000-8000-000000000001", number: "INV-030", currency: "LKR", total: 20000, state: "issued", first_sent_on: location.search.includes("unsent") ? null : "2026-10-29"}]} /> : location.search.includes("service-editor") ? <main><RecordEditor kind="service" onSave={async (form) => { window.fixtureService = JSON.parse(form.get("payload")); return ""; }} initial={{parent_id: "10000000-0000-4000-8000-000000000020", currency: "LKR"}} services={[{id: "10000000-0000-4000-8000-000000000020", name: "Website", currency: "LKR", rate: 10000}]} /></main> : location.search.includes("service-tree") ? <main><ServicesList rows={[{id: "parent", name: "Website", rate: 10000, currency: "LKR"}, {id: "child", parent_id: "parent", name: "Hosting", rate: 1000, currency: "LKR"}]} /></main> : location.search.includes("mobile-layout") ? <div className="shell"><Sidebar /><div><header className="workspace-bar"><MobileNavigation /><a href="/dashboard" className="workspace-identity">Ledger <WorkspaceTitle /></a><div className="workspace-tools"><NotificationMenu /><SettingsMenu /></div></header><main className="content"><CollectionList collection={new URLSearchParams(location.search).get("collection") || "services"} rows={[{id: "service-1", name: "Web development", number: "INV-CMP0001-2026-00001", company_id: "company", rate: 12000000, currency: "LKR", active: true, created_at: "2026-10-28"}]} companies={{company: "Example company"}} /><div className="heading"><h1>Overview</h1><div className="actions"><NewMenu /></div></div></main></div></div> : <main className="content"><header className="workspace-bar"><span>Ledger <WorkspaceTitle /></span><div className="workspace-tools"><NotificationMenu /></div></header><h1>Company workspace</h1><NavigationFixture /><NewMenu /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="projects" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="payments" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" recordId="10000000-0000-4000-8000-000000000002" label="View draft invoice" /><section aria-label="Service catalogue"><RecordsTable collection="services" rows={[{id: "service-1", name: "Web development", rate: 12000, currency: "LKR", active: true}]} /></section><div className="grid dashboard-activity-grid"><section className="card dashboard-billing"><div className="heading"><h2>Billing activity</h2></div><BillingChart months={[{month: "2026-10", issued: 12000, collected: 6000, issuedCompanies: 1, collectedCompanies: 1}]} currency="LKR" /><p className="chart-legend">Issued charges</p></section><section className="card dashboard-notifications"><div className="heading"><h2>Latest notifications</h2></div><NotificationPreview items={Array.from({length: 5}, (_, index) => ({id: "layout-" + index, title: "Invoice update", message: "Invoice saved", status: "recorded", date: "2026-10-27T10:00:00Z", category: "changes", company: "Test Company", record: "INV-001", href: "/invoices/invoice"}))} /></section></div></main>);`,
       resolveDir: process.cwd(),
       loader: "tsx",
     },
@@ -50,15 +52,16 @@ test.beforeAll(async () => {
           builder.onLoad({ filter: /.*/, namespace: "fixture" }, (args) => ({
             contents:
               args.path === "next/navigation"
-                ? `export const usePathname = () => "/services"; export const useRouter = () => ({ refresh() { window.fixtureRefreshCount = (window.fixtureRefreshCount || 0) + 1; } }); export const useSearchParams = () => new URLSearchParams(location.search);`
+                ? `export const usePathname = () => "/services"; export const useRouter = () => ({ push(url) { window.fixtureNavigation = url; }, refresh() { window.fixtureRefreshCount = (window.fixtureRefreshCount || 0) + 1; } }); export const useSearchParams = () => new URLSearchParams(location.search);`
                 : args.path === "next/link"
                   ? `import React from "react"; export const useLinkStatus = () => ({ pending: false }); export default function Link({children, scroll, onClick, ...props}) { return React.createElement("a", {...props, onClick(event) { event.preventDefault(); onClick?.(event); }}, children); }`
                   : `
+        export async function deleteService() { return ""; }
         export async function signOut() {}
         const company = "10000000-0000-4000-8000-000000000001";
         export async function loadCompanyEditor(_, collection) {
           if (location.search.includes("unavailable")) return { error: "This section needs a database update." };
-          return { data: { initial: { company_id: company, currency: "LKR" }, companies: [{ id: company, name: "Test company", currency: "LKR" }], projects: [], services: [], pendingExpenses: [] } };
+          return { data: { initial: { company_id: company, currency: "LKR" }, companies: [{ id: company, name: "Test company", currency: "LKR" }], projects: location.search.includes("agreed-invoice") ? [{ id: "10000000-0000-4000-8000-000000000010", company_id: company, name: "Agreed website services", currency: "LKR", state: "active", discount: 3000, items: [{ id: "10000000-0000-4000-8000-000000000011", name: "Monthly design", quantity: "2", rate: 10000, discount: 2000, billing_type: "monthly" }, { id: "10000000-0000-4000-8000-000000000012", name: "Already billed setup", quantity: "1", rate: 12000, discount: 0, billing_type: "one-time" }] }] : [], billedServiceIds: ["10000000-0000-4000-8000-000000000012"], services: collection === "projects" ? [{ id: "10000000-0000-4000-8000-000000000003", name: "Design", description: "", currency: "LKR", rate: 10000, billing_type: "monthly" }, { id: "10000000-0000-4000-8000-000000000004", parent_id: "10000000-0000-4000-8000-000000000003", name: "Setup", description: "", currency: "LKR", rate: 5000, billing_type: "one-time" }] : [], pendingExpenses: [] } };
         }
         export async function saveCompanyRecord(_, form) { window.fixtureRow = { ...JSON.parse(form.get("payload")), id: "10000000-0000-4000-8000-000000000002", state: "pending" }; return { id: window.fixtureRow.id }; }
         export async function loadCompanyRecord() {
@@ -68,7 +71,7 @@ test.beforeAll(async () => {
         }
         export async function financialAction(_, form) {
           if (form.get("action") === "attach_pending_expenses") { window.fixtureAttached = true; window.fixtureRow.total += 2500; }
-          else window.fixtureRow.state = "confirmed";
+          else if (form.get("action") !== "mark_external") window.fixtureRow.state = "confirmed";
           return "Saved successfully.";
         }
         export async function getNotificationPreview() {
@@ -306,7 +309,7 @@ test("company menu does not move on hover and services have no company column", 
   await page.goto("/company-ui-fixture");
   const link = page
     .getByRole("navigation", { name: "Company sections", exact: true })
-    .getByRole("link", { name: "Projects" });
+    .getByRole("link", { name: "Agreed services" });
   const before = await link.boundingBox();
   await link.hover();
   await expect(link).toHaveCSS("transform", "none");
@@ -552,4 +555,281 @@ test("opening and dismissing a record does not refresh the entire page", async (
           .fixtureRefreshCount || 0,
     ),
   ).toBe(0);
+});
+
+test("adds agreed services with discounts inside the company, without a separate packages page", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/company-ui-fixture");
+  await expect(
+    page.getByRole("link", { name: "Services & Packages", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Add agreed services", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Agreed services name")).toHaveCount(0);
+  await dialog
+    .getByLabel("Add agreed service")
+    .selectOption("10000000-0000-4000-8000-000000000003");
+  await dialog.getByLabel("Service quantity 1").fill("2");
+  await dialog.getByLabel("Service discount 1", { exact: true }).fill("20");
+  await dialog
+    .getByLabel("Add agreed service")
+    .selectOption("10000000-0000-4000-8000-000000000004");
+  await expect(dialog.getByLabel("Payment frequency 2")).toHaveValue(
+    "one-time",
+  );
+  await dialog.getByLabel("Full-service discount", { exact: true }).fill("30");
+  await expect(dialog.getByText(/First billing total:/)).toContainText(
+    "200.00",
+  );
+  expect(
+    await dialog.evaluate(
+      (element) => element.scrollWidth <= element.clientWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: ".artifacts/agreed-services-mobile.png",
+    fullPage: true,
+  });
+  await dialog.getByRole("button", { name: "Review changes" }).click();
+  await dialog
+    .getByRole("button", { name: "Save changes", exact: true })
+    .click();
+  const saved = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          fixtureRow: { items: unknown[]; price: number; discount: number };
+        }
+      ).fixtureRow,
+  );
+  expect(saved.items).toHaveLength(2);
+  expect(saved.price).toBe(20000);
+  expect(saved.discount).toBe(3000);
+  await expect(
+    dialog.getByRole("link", { name: "Create service invoice" }),
+  ).toBeVisible();
+});
+
+test("invoice preview automatically loads the company's services and excludes reserved one-time items", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?agreed-invoice");
+  await page.getByRole("button", { name: "New invoice", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Agreed services (optional)")).toHaveCount(0);
+  await expect(
+    dialog.getByLabel("Tax rate in basis points (100 = 1%)"),
+  ).toHaveCount(0);
+  await expect(dialog.getByLabel("Description 1")).toHaveValue(
+    "Monthly design",
+  );
+  await expect(dialog.getByLabel("Description 2")).toHaveCount(0);
+  await expect(dialog.locator(".summary .grand")).toContainText("162.00");
+  await dialog.getByLabel("Discount type").selectOption("percentage");
+  await dialog
+    .getByRole("spinbutton", { name: "Discount", exact: true })
+    .fill("10");
+  await expect(dialog.locator(".summary .grand")).toContainText("145.80");
+  await dialog
+    .getByRole("button", { name: "Review draft", exact: true })
+    .click();
+  await dialog.getByRole("button", { name: "Save draft", exact: true }).click();
+  const saved = await page.evaluate(
+    () =>
+      (window as unknown as { fixtureRow: { items: { discount: number }[] } })
+        .fixtureRow,
+  );
+  expect(saved.items).toHaveLength(1);
+  expect(saved.items[0].discount).toBe(3800);
+});
+
+test("selects a sub-service on its own and saves percentage discounts without a separate name", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture");
+  await page
+    .getByRole("button", { name: "Add agreed services", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByLabel("Agreed services name")).toHaveCount(0);
+  await dialog
+    .getByLabel("Add agreed service")
+    .selectOption("10000000-0000-4000-8000-000000000004");
+  await expect(dialog.locator("fieldset")).toHaveCount(1);
+  await expect(dialog.locator("legend")).toHaveText("Setup");
+  await dialog
+    .getByLabel("Service discount 1 type", { exact: true })
+    .selectOption("percentage");
+  await dialog.getByLabel("Service discount 1", { exact: true }).fill("20");
+  await dialog
+    .getByLabel("Full-service discount type", { exact: true })
+    .selectOption("percentage");
+  await dialog.getByLabel("Full-service discount", { exact: true }).fill("10");
+  await expect(dialog.getByText(/First billing total:/)).toContainText("36.00");
+  const discountBox = await dialog
+    .locator(".service-discount-frequency .discount-field")
+    .boundingBox();
+  const frequencyBox = await dialog
+    .getByLabel("Payment frequency 1")
+    .boundingBox();
+  expect(discountBox!.x).toBeLessThan(frequencyBox!.x);
+  await dialog.getByRole("button", { name: "Review changes" }).click();
+  await dialog
+    .getByRole("button", { name: "Save changes", exact: true })
+    .click();
+  const saved = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          fixtureRow: {
+            name: string;
+            discount_type: string;
+            discount_value: number;
+            price: number;
+            items: { discount_type: string; discount_value: number }[];
+          };
+        }
+      ).fixtureRow,
+  );
+  expect(saved).toMatchObject({
+    name: "Setup",
+    discount_type: "percentage",
+    discount_value: 1000,
+    price: 3600,
+  });
+  expect(saved.items[0]).toMatchObject({
+    discount_type: "percentage",
+    discount_value: 2000,
+  });
+});
+
+test("catalogue nests sub-services and confirms deletion", async ({ page }) => {
+  await page.goto("/company-ui-fixture?service-tree");
+  await expect(page.locator(".service-card")).toHaveCount(1);
+  await expect(page.locator(".sub-service-row")).toContainText("Hosting");
+  await page.getByLabel("Actions for Hosting").click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Delete Hosting" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).not.toBeVisible();
+});
+
+test("sub-service editor preserves its parent and groups pricing fields", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?service-editor");
+  await expect(page.getByLabel("Main service", { exact: true })).toHaveValue(
+    "10000000-0000-4000-8000-000000000020",
+  );
+  await expect(page.getByLabel("Archive service")).toHaveCount(0);
+  const frequency = await page.getByLabel("Payment frequency").boundingBox();
+  const rate = await page.getByLabel("Default rate").boundingBox();
+  const currency = await page
+    .getByLabel("Currency", { exact: true })
+    .boundingBox();
+  expect(frequency?.y).toBe(rate?.y);
+  expect(rate?.y).toBe(currency?.y);
+  await page.getByLabel("Service name").fill("Hosting");
+  await page.getByRole("button", { name: "Review changes" }).click();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { fixtureService: { parent_id: string } })
+            .fixtureService?.parent_id,
+      ),
+    )
+    .toBe("10000000-0000-4000-8000-000000000020");
+});
+
+test("invoice tracker hands the received amount to company payments", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?invoice-tracker");
+  await page.getByText("Track invoice", { exact: true }).click();
+  await expect(page.getByText("Sent: 2026-10-29")).toBeVisible();
+  const tracker = page.getByRole("dialog", {
+    name: "Invoice tracker",
+    exact: true,
+  });
+  await expect(tracker).toBeVisible();
+  await expect(
+    page.getByRole("columnheader", { name: "Company", exact: true }),
+  ).toHaveCount(0);
+  await tracker.getByLabel("Update invoice").selectOption("payment");
+  await tracker
+    .getByRole("button", { name: "Record payment", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog", {
+    name: "Record payment",
+    exact: true,
+  });
+  await expect(dialog.getByLabel("Invoice number")).toHaveValue("INV-030");
+  await expect(dialog.getByLabel("Full invoice amount")).toHaveValue("200.00");
+  await expect(dialog.getByLabel("Amount received")).toHaveValue("200.00");
+  await expect(dialog.getByLabel("Agreed services (optional)")).toHaveCount(0);
+  await expect(dialog.getByLabel("Bank or transaction reference")).toHaveCount(
+    0,
+  );
+  const currency = await dialog
+    .getByLabel("Currency", { exact: true })
+    .boundingBox();
+  const full = await dialog.getByLabel("Full invoice amount").boundingBox();
+  const received = await dialog.getByLabel("Amount received").boundingBox();
+  expect(currency?.y).toBe(full?.y);
+  expect(full?.y).toBe(received?.y);
+  await dialog.getByLabel("Method", { exact: true }).selectOption("cheque");
+  await dialog.getByLabel("Amount received").fill("250");
+  await dialog.getByRole("button", { name: "Review changes" }).click();
+  await dialog
+    .getByRole("button", { name: "Save changes", exact: true })
+    .click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { fixtureNavigation: string })
+            .fixtureNavigation,
+      ),
+    )
+    .toContain("?section=payments&record=");
+  const saved = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          fixtureRow: { amount: number; reference: string };
+        }
+      ).fixtureRow,
+  );
+  expect(saved.amount).toBe(25000);
+  expect(saved.reference).toBe("INV-030");
+});
+
+test("tracker popup marks an invoice sent without delivery channel choices", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?invoice-tracker&unsent");
+  await page
+    .getByRole("button", { name: "Track invoice", exact: true })
+    .click();
+  const tracker = page.getByRole("dialog", {
+    name: "Invoice tracker",
+    exact: true,
+  });
+  await tracker.getByLabel("Update invoice").selectOption("sent");
+  await expect(tracker.getByLabel("Delivery channel")).toHaveCount(0);
+  await expect(tracker.getByText("WhatsApp", { exact: true })).toHaveCount(0);
+  await tracker.getByRole("button", { name: "Review mark as sent" }).click();
+  await tracker
+    .getByRole("button", { name: "Mark as sent", exact: true })
+    .click();
+  await expect(tracker.getByText("Invoice marked as sent.")).toBeVisible();
+  await tracker.getByRole("button", { name: "Close invoice tracker" }).click();
+  await expect(tracker).not.toBeVisible();
 });

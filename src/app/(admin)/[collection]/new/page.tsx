@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation";
+import Link from "@/components/navigation-link";
+import { ArrowLeft } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
 import {
   allRows,
   oneRow,
@@ -27,12 +29,14 @@ export default async function NewPage({
     project?: string;
     kind?: string;
     proposal?: string;
+    parent?: string;
   }>;
 }) {
   const { collection } = await params;
   const kind = kinds[collection];
   if (!kind) notFound();
   const query = await searchParams;
+  if (kind === "project" && !query.company) redirect("/companies");
   const [companies, projects, services] = await Promise.all([
     ["company", "service"].includes(kind)
       ? Promise.resolve([])
@@ -40,15 +44,35 @@ export default async function NewPage({
     ["agreement", "proposal", "invoice", "payment"].includes(kind)
       ? allRows("projects")
       : Promise.resolve([]),
-    ["agreement", "invoice"].includes(kind)
+    ["agreement", "invoice", "project", "service"].includes(kind)
       ? allRows("service_catalogue")
       : Promise.resolve([]),
   ]);
+  const [serviceInvoiceItems, serviceInvoices] =
+    kind === "invoice"
+      ? await Promise.all([allRows("invoice_items"), allRows("invoices")])
+      : [[], []];
+  const reservedInvoices = new Set(
+    serviceInvoices
+      .filter((invoice) => invoice.state !== "void")
+      .map((invoice) => invoice.id),
+  );
+  const billedServiceIds = serviceInvoiceItems
+    .filter(
+      (item) => item.service_item_id && reservedInvoices.has(item.invoice_id),
+    )
+    .map((item) => item.service_item_id!);
   const initial: Record<string, Json> = {};
   if (query.company) {
     initial.company_id = query.company;
     initial.currency =
       companies.find((c) => c.id === query.company)?.currency || "LKR";
+  }
+  if (query.parent && kind === "service") {
+    initial.parent_id = query.parent;
+    initial.currency =
+      services.find((service) => service.id === query.parent)?.currency ||
+      "LKR";
   }
   if (query.project) {
     const p = projects.find((p) => p.id === query.project);
@@ -61,23 +85,32 @@ export default async function NewPage({
           project_id: p.id,
           state: "issued",
         });
-        const billed = invoices
-          .filter((i) => i.project_id === p.id && i.state === "issued")
-          .reduce((s, i) => s + i.total, 0);
-        initial.kind = query.kind === "advance" ? "advance" : "balance";
-        initial.items = [
-          {
-            description:
-              query.kind === "advance"
-                ? "Project advance: " + p.name
-                : "Project balance: " + p.name,
-            quantity: "1",
-            rate:
-              query.kind === "advance"
-                ? p.advance
-                : Math.max(0, p.price - billed),
-          },
-        ];
+        if (Array.isArray(p.items) && p.items.length) {
+          initial.kind = "recurring";
+          initial.period =
+            new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Colombo" })
+              .format(new Date())
+              .slice(0, 7) + "-01";
+          initial.items = [];
+        } else {
+          const billed = invoices
+            .filter((i) => i.project_id === p.id && i.state === "issued")
+            .reduce((s, i) => s + i.total, 0);
+          initial.kind = query.kind === "advance" ? "advance" : "balance";
+          initial.items = [
+            {
+              description:
+                query.kind === "advance"
+                  ? "Service advance: " + p.name
+                  : "Service balance: " + p.name,
+              quantity: "1",
+              rate:
+                query.kind === "advance"
+                  ? p.advance
+                  : Math.max(0, p.price - billed),
+            },
+          ];
+        }
       }
     }
   }
@@ -108,17 +141,75 @@ export default async function NewPage({
       setupError = recordLoadMessage(error);
     }
   }
+
+  let availableCredit = 0;
+  let previousBalance = 0;
+  const companyTarget =
+    (initial.company_id ? String(initial.company_id) : undefined) ||
+    query.company;
+  if (kind === "invoice" && companyTarget) {
+    try {
+      const { balances: loadBalances } =
+        await import("@/lib/db/repositories/records");
+      const [pmts, allocs, bals] = await Promise.all([
+        allRows("payments", companyTarget, { state: "confirmed" }),
+        allRows("payment_allocations"),
+        loadBalances(companyTarget),
+      ]);
+      const currency = String(
+        initial.currency ||
+          companies.find((c) => c.id === companyTarget)?.currency ||
+          "LKR",
+      );
+      availableCredit = pmts.reduce((sum, p) => {
+        if (p.currency !== currency) return sum;
+        const used = allocs
+          .filter((a) => a.payment_id === p.id)
+          .reduce((acc, a) => acc + a.amount, 0);
+        return sum + Math.max(0, p.amount - used);
+      }, 0);
+      previousBalance = bals
+        .filter(
+          (b) =>
+            b.company_id === companyTarget &&
+            b.currency === currency &&
+            (b.outstanding || 0) > 0,
+        )
+        .reduce((sum, b) => sum + (b.outstanding || 0), 0);
+    } catch (error) {
+      setupError = recordLoadMessage(error);
+    }
+  }
+
   return (
     <>
       <div className="heading">
         <div>
-          <div className="eyebrow">{collection} / New</div>
-          <h1>{kind === "payment" ? "Record payment" : "New " + kind}</h1>
-          <p>
+          {kind === "service" ? (
+            <Link className="text-link" href="/services">
+              <ArrowLeft size={16} aria-hidden="true" />{" "}
+              {query.parent ? "Sub-service" : "Service"}
+            </Link>
+          ) : (
+            <div className="eyebrow">{collection} / New</div>
+          )}
+          <h1>
             {kind === "payment"
-              ? "Recording keeps the payment pending until you confirm it."
-              : "Complete the details and review before saving."}
-          </p>
+              ? "Record payment"
+              : "New " +
+                (kind === "project"
+                  ? "agreed services"
+                  : kind === "service" && query.parent
+                    ? "sub-service"
+                    : kind)}
+          </h1>
+          {kind !== "service" && (
+            <p>
+              {kind === "payment"
+                ? "Recording keeps the payment pending until you confirm it."
+                : "Complete the details and review before saving."}
+            </p>
+          )}
         </div>
       </div>
       {setupError ? (
@@ -136,6 +227,9 @@ export default async function NewPage({
           companies={companies.filter((c) => kind === "payment" || !c.archived)}
           projects={projects}
           services={services.filter((s) => !s.archived)}
+          availableCredit={availableCredit}
+          billedServiceIds={billedServiceIds}
+          previousBalance={previousBalance}
         />
       )}
     </>

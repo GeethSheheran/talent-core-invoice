@@ -29,3 +29,29 @@ export function allocationPreview(
       return used > 0 ? [{ invoice_id: i.id, amount: used }] : [];
     });
 }
+export function calculateCompanyCredit(
+  payments: {
+    id: string;
+    amount: number;
+    company_id: string;
+    currency: string;
+    state: string;
+  }[],
+  allocations: { payment_id: string; amount: number }[],
+  companyId: string,
+  currency?: string,
+) {
+  return payments
+    .filter(
+      (p) =>
+        p.company_id === companyId &&
+        p.state === "confirmed" &&
+        (!currency || p.currency === currency),
+    )
+    .reduce((total, p) => {
+      const allocated = allocations
+        .filter((a) => a.payment_id === p.id)
+        .reduce((sum, a) => sum + a.amount, 0);
+      return total + Math.max(0, p.amount - allocated);
+    }, 0);
+}

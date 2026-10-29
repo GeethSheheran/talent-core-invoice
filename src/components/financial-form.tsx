@@ -14,7 +14,9 @@ export function FinancialForm({
   compact = false,
   emailMode = "configured",
   onSuccess,
+  hideDeliveryChannel = false,
 }: {
+  hideDeliveryChannel?: boolean;
   onSuccess?: () => Promise<void>;
   emailMode?: "mock" | "configured";
   compact?: boolean;
@@ -41,7 +43,7 @@ export function FinancialForm({
     allocationPreview(amount, invoices, company, currency),
   );
   const [fields, setFields] = useState<Record<string, string>>({
-    channel: "WhatsApp",
+    channel: hideDeliveryChannel ? "other" : "WhatsApp",
     period: new Date().toISOString().slice(0, 7) + "-01",
     pause: "true",
   });
@@ -144,7 +146,7 @@ export function FinancialForm({
           />
         </label>
       )}
-      {action === "mark_external" && (
+      {action === "mark_external" && !hideDeliveryChannel && (
         <label>
           Delivery channel
           <select

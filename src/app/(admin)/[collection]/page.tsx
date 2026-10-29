@@ -1,9 +1,10 @@
 import { NotificationsPage } from "@/components/notifications-page";
 import { PaymentsList } from "@/components/payments-list";
+import { ServicesList } from "@/components/services-list";
 import { summarizePayments } from "@/lib/payments/summary";
 import type { Tables } from "@/lib/db/database.types";
 import Link from "@/components/navigation-link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   allRows,
   listRecords,
@@ -22,6 +23,7 @@ export default async function ListPage({
 }) {
   const { collection } = await params;
   if (!(collection in tableMap)) notFound();
+  if (collection === "projects") redirect("/companies");
   const key = collection as Collection;
   const query = await searchParams;
   if (collection === "notifications") return <NotificationsPage />;
@@ -120,6 +122,10 @@ export default async function ListPage({
     "active",
     "due_date",
     "created_at",
+    "parent_id",
+    "billing_type",
+    "discount",
+    "items",
   ];
   const rows = (data as unknown as Record<string, Json>[])
     .map((row) =>
@@ -130,6 +136,11 @@ export default async function ListPage({
       ),
     )
     .sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+
+  if (collection === "services") {
+    return <ServicesList rows={rows} initialQuery={query.q} />;
+  }
+
   return (
     <CollectionList
       collection={collection}

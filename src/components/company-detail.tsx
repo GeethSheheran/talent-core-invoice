@@ -1,7 +1,7 @@
 import Link from "@/components/navigation-link";
 import { Suspense } from "react";
 import { PageLoading } from "@/components/page-loading";
-import { Building2, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { CompanySectionNav } from "@/components/company-section-nav";
 import { loadCompanySection } from "@/lib/company-data";
 import {
@@ -114,6 +114,7 @@ async function SectionContent({
         <CompanyRecordDialog companyId={id} collection={collection} />
       </div>
       <RecordsTable
+        hideCompany
         collection={collection}
         rows={rows}
         companies={{ [id]: company.name }}
@@ -145,9 +146,6 @@ export async function CompanyDetail({
       </Link>
       <div className="heading company-heading">
         <div className="company-title">
-          <span className="company-avatar">
-            <Building2 size={28} aria-hidden="true" />
-          </span>
           <div>
             <div className="eyebrow">Company workspace · {company.code}</div>
             <h1>{company.name}</h1>

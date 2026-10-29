@@ -26,7 +26,7 @@ export function recordLoadMessage(error: unknown) {
     error instanceof RecordLoadError &&
     ["PGRST205", "42P01", "42703"].includes(error.code)
   ) {
-    return "This section needs a database update. Apply the pending expenses and recurring schedules migration to the configured Supabase project, then retry. Existing records are preserved.";
+    return "This section needs a database update. Apply the pending database migrations (expenses, recurring schedules, and agreed services) to the configured Supabase project, then retry. Existing records are preserved.";
   }
   return "This section could not be loaded. Check the database connection and access permissions, then retry. Existing records are preserved.";
 }
@@ -123,6 +123,8 @@ const listFields = {
     "created_at",
   ],
   services: [
+    "parent_id",
+    "billing_type",
     "id",
     "name",
     "description",
@@ -152,6 +154,7 @@ const listFields = {
     "created_at",
   ],
   invoices: [
+    "first_sent_on",
     "id",
     "number",
     "company_id",

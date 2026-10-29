@@ -82,6 +82,7 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
                   <th style={{ width: "48%" }}>Description</th>
                   <th>Qty</th>
                   <th>Rate</th>
+                  <th>Discount</th>
                   <th>Amount</th>
                 </tr>
               </thead>
@@ -91,6 +92,7 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
                     <td>{item.description}</td>
                     <td>{item.quantity}</td>
                     <td>{money(item.rate)}</td>
+                    <td>{money(item.discount || 0)}</td>
                     <td>{money(item.amount)}</td>
                   </tr>
                 ))}
@@ -98,7 +100,7 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
             </table>
             <div className="summary">
               <p>
-                <span>Subtotal</span>
+                <span>Subtotal after service discounts</span>
                 {money(s.invoice.subtotal)}
               </p>
               <p>
@@ -114,12 +116,16 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
                 {money(s.invoice.total)}
               </p>
               <p>
-                <span>Credit applied at issue</span>
-                {money(0)}
+                <span>Credit applied from previous overpayment</span>
+                {money(s.invoice.credit_applied || 0)}
               </p>
               <p>
                 <span>Current invoice balance at issue</span>
-                {money(s.invoice.total)}
+                {money(
+                  s.invoice.balance_at_issue != null
+                    ? s.invoice.balance_at_issue
+                    : s.invoice.total - (s.invoice.credit_applied || 0),
+                )}
               </p>
             </div>
           </section>
@@ -147,7 +153,9 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
             <strong>
               Combined amount requested at issue:{" "}
               {money(
-                s.invoice.total +
+                (s.invoice.balance_at_issue != null
+                  ? s.invoice.balance_at_issue
+                  : s.invoice.total - (s.invoice.credit_applied || 0)) +
                   (s.references || []).reduce((sum, r) => sum + r.amount, 0),
               )}
             </strong>

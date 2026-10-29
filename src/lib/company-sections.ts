@@ -28,7 +28,7 @@ export const companyKinds = {
 } as const;
 export const sectionLabels: Record<CompanySection, string> = {
   overview: "Overview",
-  projects: "Projects",
+  projects: "Agreed services",
   agreements: "Agreements",
   proposals: "Proposals",
   invoices: "Invoices",

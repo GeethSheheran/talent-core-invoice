@@ -1,11 +1,18 @@
 "use client";
 import { useActionState, useState } from "react";
+import { DiscountInput } from "@/components/discount-input";
 import { ProposalSource } from "@/components/proposal-source";
 import { saveRecord } from "@/app/(admin)/actions";
 import { major, minor, currencies, formatMoney } from "@/lib/billing/money";
 import { totals, type Line } from "@/lib/billing/totals";
 import type { RecordKind } from "@/lib/validation/schemas";
 import type { Tables, Json } from "@/lib/db/database.types";
+import {
+  agreedServiceLines,
+  discountAmount,
+  serviceDiscount,
+  type AgreedService as PackageItem,
+} from "@/lib/billing/agreed-services";
 type Option = { id: string; name: string; currency: string };
 type Field = {
   key: string;
@@ -48,14 +55,21 @@ const fields: Record<RecordKind, Field[]> = {
   service: [
     { key: "name", label: "Service name", required: true },
     { key: "description", label: "Description", type: "textarea" },
+    {
+      key: "billing_type",
+      label: "Payment frequency",
+      options: ["monthly", "one-time"],
+      value: "monthly",
+    },
     { key: "rate", label: "Default rate", type: "money" },
+
     ...common,
   ],
   project: [
-    { key: "name", label: "Project name", required: true },
-    { key: "scope", label: "Scope", type: "textarea" },
+    { key: "name", label: "Agreed services name", required: true },
+    { key: "scope", label: "Scope & Details", type: "textarea" },
     ...common,
-    { key: "price", label: "Agreed project total", type: "money" },
+    { key: "price", label: "Agreed total", type: "money" },
     { key: "advance", label: "Advance requirement", type: "money" },
     {
       key: "state",
@@ -119,8 +133,12 @@ const fields: Record<RecordKind, Field[]> = {
     ...common,
     { key: "amount", label: "Amount received", type: "money" },
     { key: "received_on", label: "Payment received date", type: "date" },
-    { key: "method", label: "Method", options: ["bank", "cash", "other"] },
-    { key: "reference", label: "Bank or transaction reference" },
+    {
+      key: "method",
+      label: "Method",
+      options: ["bank", "cash", "cheque", "other"],
+    },
+    { key: "reference", label: "Invoice number" },
   ],
   proposal: [
     { key: "title", label: "Proposal title", required: true },
@@ -191,6 +209,9 @@ export function RecordEditor({
   onSave,
   lockCompany = false,
   inlineReview = false,
+  availableCredit,
+  billedServiceIds = [],
+  previousBalance,
 }: {
   kind: RecordKind;
   onSave?: (form: FormData) => Promise<string>;
@@ -199,14 +220,26 @@ export function RecordEditor({
   id?: string;
   initial?: Record<string, Json | undefined>;
   companies?: Option[];
-  projects?: Option[];
+  projects?: (Option & {
+    items?: Json;
+    company_id?: string;
+    state?: string;
+    discount?: number;
+    price?: number;
+  })[];
   pendingExpenses?: Tables<"company_expenses">[];
   services?: {
+    id?: string;
+    parent_id?: string | null;
+    billing_type?: string;
     name: string;
     description: string;
     rate: number;
     currency: string;
   }[];
+  availableCredit?: number;
+  billedServiceIds?: string[];
+  previousBalance?: number;
 }) {
   const [message, action, pending] = useActionState(
     onSave ? (_: string, form: FormData) => onSave(form) : saveRecord,
@@ -215,10 +248,35 @@ export function RecordEditor({
   const [payload, setPayload] = useState("");
   const [review, setReview] = useState(false);
   const [error, setError] = useState("");
-  const [lines, setLines] = useState<Line[]>(
-    (initial.items as Line[] | undefined) || [
-      { description: "", quantity: "1", rate: 0 },
-    ],
+  function companyLines(company: string, currency: string): Line[] {
+    const agreed = projects.filter(
+      (p) =>
+        p.company_id === company &&
+        p.currency === currency &&
+        p.state === "active",
+    );
+    const result = agreed.flatMap((p) =>
+      Array.isArray(p.items) && p.items.length
+        ? agreedServiceLines(
+            p.items as unknown as PackageItem[],
+            p.discount || 0,
+            billedServiceIds,
+          )
+        : [{ description: p.name, quantity: "1", rate: p.price || 0 }],
+    );
+    return result.length
+      ? result
+      : [{ description: "", quantity: "1", rate: 0 }];
+  }
+  const [lines, setLines] = useState<Line[]>(() =>
+    (initial.items as Line[] | undefined)?.length
+      ? (initial.items as Line[])
+      : kind === "invoice" && !id
+        ? companyLines(
+            String(initial.company_id || ""),
+            String(initial.currency || "LKR"),
+          )
+        : [{ description: "", quantity: "1", rate: 0 }],
   );
   const [sections, setSections] = useState<{ title: string; body: string }[]>(
     (initial.sections as { title: string; body: string }[] | undefined) || [
@@ -243,11 +301,36 @@ export function RecordEditor({
     ),
   );
   const [companyId, setCompanyId] = useState(String(initial.company_id || ""));
-  const visibleFields = fields[kind].filter(
-    (f) => !(kind === "invoice" && id && f.key === "repeat"),
-  );
+  const [parentId, setParentId] = useState(String(initial.parent_id || ""));
   const [currency, setCurrency] = useState(String(initial.currency || "LKR"));
+  const [projectId, setProjectId] = useState(String(initial.project_id || ""));
+  const eligibleProjects = projects.filter(
+    (p) =>
+      (!p.company_id || p.company_id === companyId) && p.currency === currency,
+  );
+  const [packageItems, setPackageItems] = useState<PackageItem[]>(() =>
+    Array.isArray(initial.items) && kind === "project"
+      ? (initial.items as unknown as PackageItem[])
+      : [],
+  );
+  const [packageDiscount, setPackageDiscount] = useState<number>(
+    Number(initial.discount_value ?? initial.discount ?? 0),
+  );
+  const [packageDiscountType, setPackageDiscountType] = useState<
+    "amount" | "percentage"
+  >(initial.discount_type === "percentage" ? "percentage" : "amount");
+  const visibleFields = fields[kind].filter(
+    (f) =>
+      !(
+        kind === "invoice" &&
+        (["discount", "tax_bps"].includes(f.key) || (id && f.key === "repeat"))
+      ) &&
+      !(kind === "project" && ["name", "price", "advance"].includes(f.key)),
+  );
   const [discount, setDiscount] = useState(Number(initial.discount || 0));
+  const [discountType, setDiscountType] = useState<"amount" | "percentage">(
+    "amount",
+  );
   const [tax, setTax] = useState(Number(initial.tax_bps || 0));
   const needsCompany = [
     "expense",
@@ -278,14 +361,42 @@ export function RecordEditor({
             expense_id: e.id,
           }))
       : [];
-  const previewLines = [...lines, ...automaticExpenses];
+  const effectiveLines = lines;
+  const previewLines: Line[] = [...effectiveLines, ...automaticExpenses];
   const summary = (() => {
     try {
-      return totals(previewLines, discount, tax);
+      return totals(
+        previewLines,
+        kind === "invoice"
+          ? discountAmount(
+              totals(previewLines).subtotal,
+              discountType,
+              discount,
+            )
+          : discount,
+        tax,
+      );
     } catch {
       return null;
     }
   })();
+
+  let packageNetPrice = 0;
+  let packageDiscountAmount = 0;
+  let packageError = "";
+  try {
+    packageDiscountAmount = discountAmount(
+      totals(agreedServiceLines(packageItems)).total,
+      packageDiscountType,
+      packageDiscount,
+    );
+    packageNetPrice = totals(
+      agreedServiceLines(packageItems, packageDiscountAmount),
+    ).total;
+  } catch (e) {
+    packageError = e instanceof Error ? e.message : "Check service amounts";
+  }
+
   function prepare(form: HTMLFormElement) {
     try {
       const data: Record<string, unknown> = {};
@@ -312,7 +423,43 @@ export function RecordEditor({
         data.company_id = String(f.get("company_id"));
         data.project_id = String(f.get("project_id") || "");
       }
-      if (hasRows) data.items = lines;
+      if (hasRows) data.items = effectiveLines;
+      if (kind === "invoice") {
+        if (!summary) throw new Error("Check invoice amounts and discount.");
+        data.discount = summary.discount;
+        data.tax_bps = tax;
+        // Company services are copied into editable draft rows, without invoking a schedule.
+        data.project_id = id ? String(initial.project_id || "") : "";
+      }
+      if (kind === "service") {
+        data.parent_id = parentId || null;
+        data.archived = Boolean(initial.archived);
+        data.billing_type = String(f.get("billing_type") || "monthly");
+      }
+      if (kind === "project") {
+        if (!packageItems.length)
+          throw new Error(
+            "Add at least one agreed service from the catalogue.",
+          );
+        if (packageError) throw new Error(packageError);
+        data.advance = 0;
+        data.name = packageItems
+          .map((item) => item.name)
+          .join(", ")
+          .slice(0, 160);
+        data.discount = packageDiscountAmount;
+        data.discount_type = packageDiscountType;
+        data.discount_value = packageDiscount;
+        if (packageItems.length > 0) {
+          data.items = packageItems.map((item) => ({
+            ...item,
+            discount: serviceDiscount(item),
+          }));
+          data.price = packageNetPrice;
+        } else {
+          data.items = [];
+        }
+      }
       if (kind === "proposal") {
         if (
           !showProposalEditor ||
@@ -343,15 +490,43 @@ export function RecordEditor({
         className="card"
         hidden={inlineReview && review}
       >
-        <div className="grid">
+        <div
+          className={
+            kind === "service"
+              ? "grid service-editor-grid"
+              : kind === "payment"
+                ? "grid payment-editor-grid"
+                : "grid"
+          }
+        >
           {needsCompany && (
-            <div className="field">
+            <div className="field field-company">
               <label htmlFor="company_id">Company</label>
               <select
                 id="company_id"
                 name="company_id"
                 defaultValue={String(initial.company_id || "")}
-                onChange={(e) => setCompanyId(e.target.value)}
+                onChange={(e) => {
+                  const company = companies.find(
+                    (c) => c.id === e.target.value,
+                  );
+                  const nextCurrency = company?.currency || currency;
+                  setCompanyId(e.target.value);
+                  setCurrency(nextCurrency);
+                  if (kind === "invoice" && !id)
+                    setLines(companyLines(e.target.value, nextCurrency));
+                  const choices = projects.filter(
+                    (p) =>
+                      p.company_id === e.target.value &&
+                      p.currency === nextCurrency &&
+                      p.state === "active",
+                  );
+                  setProjectId(
+                    kind === "invoice" && choices.length === 1
+                      ? choices[0].id
+                      : "",
+                  );
+                }}
                 required
                 disabled={Boolean(id) || lockCompany}
               >
@@ -371,21 +546,58 @@ export function RecordEditor({
               )}
             </div>
           )}
-          {needsCompany && kind !== "project" && kind !== "expense" && (
-            <div className="field">
-              <label htmlFor="project_id">Project (optional)</label>
+          {needsCompany &&
+            kind !== "project" &&
+            kind !== "expense" &&
+            kind !== "invoice" &&
+            kind !== "payment" && (
+              <div className="field">
+                <label htmlFor="project_id">Agreed services (optional)</label>
+                <select
+                  id="project_id"
+                  name="project_id"
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                >
+                  <option value="">No linked services</option>
+                  {eligibleProjects.map((p) => (
+                    <option value={p.id} key={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          {kind === "service" && (
+            <div className="field service-parent-field">
+              <label htmlFor="parent_id">Main service</label>
               <select
-                id="project_id"
-                name="project_id"
-                defaultValue={String(initial.project_id || "")}
+                id="parent_id"
+                value={parentId}
+                onChange={(e) => setParentId(e.target.value)}
               >
-                <option value="">No linked project</option>
-                {projects.map((p) => (
-                  <option value={p.id} key={p.id}>
-                    {p.name}
-                  </option>
-                ))}
+                <option value="">This is a main service</option>
+                {services
+                  .filter(
+                    (s) =>
+                      !s.parent_id && s.id !== id && s.currency === currency,
+                  )
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
               </select>
+            </div>
+          )}
+          {kind === "payment" && initial.invoice_total != null && (
+            <div className="field field-invoice-total">
+              <label htmlFor="invoice_total">Full invoice amount</label>
+              <input
+                id="invoice_total"
+                readOnly
+                value={major(Number(initial.invoice_total))}
+              />
             </div>
           )}
           {visibleFields.map((field) => {
@@ -409,7 +621,10 @@ export function RecordEditor({
             return (
               <div
                 className={
-                  "field " + (field.type === "textarea" ? "span-2" : "")
+                  "field field-" +
+                  field.key +
+                  " " +
+                  (field.type === "textarea" ? "span-2" : "")
                 }
                 key={field.key}
               >
@@ -418,9 +633,20 @@ export function RecordEditor({
                   <select
                     id={field.key}
                     name={field.key}
-                    defaultValue={value || field.options[0]}
+                    defaultValue={
+                      field.key === "currency"
+                        ? undefined
+                        : value || field.options[0]
+                    }
+                    value={field.key === "currency" ? currency : undefined}
                     onChange={(e) =>
-                      field.key === "currency" && setCurrency(e.target.value)
+                      field.key === "currency" &&
+                      (setCurrency(e.target.value),
+                      setProjectId(""),
+                      kind === "service" && setParentId(""),
+                      kind === "invoice" &&
+                        !id &&
+                        setLines(companyLines(companyId, e.target.value)))
                     }
                   >
                     {field.options.map((o) => (
@@ -457,12 +683,22 @@ export function RecordEditor({
                         : undefined
                     }
                     readOnly={
-                      Boolean(id) &&
-                      ((field.key === "period" &&
-                        Boolean(initial.agreement_id)) ||
-                        (kind === "agreement" && field.key === "starts_on"))
+                      (kind === "payment" &&
+                        field.key === "reference" &&
+                        Boolean(initial.reference)) ||
+                      (Boolean(id) &&
+                        ((field.key === "period" &&
+                          Boolean(initial.agreement_id)) ||
+                          (kind === "agreement" && field.key === "starts_on")))
                     }
-                    defaultValue={value || (field.type === "money" ? "0" : "")}
+                    defaultValue={
+                      value ||
+                      (field.type === "month"
+                        ? today.slice(0, 7)
+                        : field.type === "money"
+                          ? "0"
+                          : "")
+                    }
                     required={
                       field.required ||
                       [
@@ -473,20 +709,220 @@ export function RecordEditor({
                       ].includes(field.key)
                     }
                     onChange={(e) => {
+                      if (field.key === "tax_bps")
+                        setTax(Number(e.target.value));
                       if (field.key === "discount") {
                         try {
                           setDiscount(minor(e.target.value || "0"));
                         } catch {}
                       }
-                      if (field.key === "tax_bps")
-                        setTax(Number(e.target.value));
                     }}
                   />
                 )}
               </div>
             );
           })}
+          {kind === "invoice" && (
+            <DiscountInput
+              label="Discount"
+              type={discountType}
+              value={discount}
+              onChange={(type, value) => {
+                setDiscountType(type);
+                setDiscount(value);
+              }}
+            />
+          )}
         </div>
+        {kind === "project" && (
+          <section>
+            <h2>Services agreed with this company</h2>
+            <p className="muted">
+              Choose a main service or a sub-service on its own. Selecting a
+              main service does not add its sub-services. Set the agreed rate
+              and billing frequency. Monthly services create a draft each month.
+              One-time services are included once. Changes apply to new drafts.
+            </p>
+            <select
+              aria-label="Add agreed service"
+              value=""
+              onChange={(e) => {
+                const service = services.find((s) => s.id === e.target.value);
+                if (service)
+                  setPackageItems([
+                    ...packageItems,
+                    {
+                      service_id: service.id,
+                      ui_key: crypto.randomUUID(),
+                      name: service.name,
+                      description: service.description,
+                      quantity: "1",
+                      rate: service.rate,
+                      discount: 0,
+                      billing_type:
+                        service.billing_type === "one-time"
+                          ? "one-time"
+                          : "monthly",
+                    },
+                  ]);
+              }}
+            >
+              <option value="">+ Choose a catalogue service</option>
+              <optgroup label="Main services">
+                {services
+                  .filter((s) => s.currency === currency && !s.parent_id)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Sub-services only">
+                {services
+                  .filter((s) => s.currency === currency && s.parent_id)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {services.find((parent) => parent.id === s.parent_id)
+                        ?.name || "Main service"}{" "}
+                      / {s.name}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
+            {!packageItems.length && (
+              <p className="notice">
+                Add a service above. Create new services in the Services
+                catalogue first.
+              </p>
+            )}
+            {packageItems.map((item, index) => {
+              const change = (value: Partial<PackageItem>) =>
+                setPackageItems(
+                  packageItems.map((row, n) =>
+                    n === index ? { ...row, ...value } : row,
+                  ),
+                );
+              const amountChange = (
+                event: React.ChangeEvent<HTMLInputElement>,
+                key: "rate" | "discount",
+              ) => {
+                try {
+                  change({ [key]: minor(event.target.value || "0") });
+                  event.currentTarget.setCustomValidity("");
+                } catch {
+                  event.currentTarget.setCustomValidity(
+                    "Enter an amount with at most two decimals.",
+                  );
+                }
+              };
+              return (
+                <fieldset
+                  className="agreed-service-row"
+                  key={item.id || item.ui_key || index}
+                >
+                  <legend>{item.name}</legend>
+                  <div className="grid">
+                    <label>
+                      Quantity
+                      <input
+                        aria-label={`Service quantity ${index + 1}`}
+                        type="number"
+                        min="0.001"
+                        max="100000"
+                        step="0.001"
+                        required
+                        value={item.quantity}
+                        onChange={(e) => change({ quantity: e.target.value })}
+                      />
+                    </label>
+                    <label>
+                      Agreed rate
+                      <input
+                        aria-label={`Agreed rate ${index + 1}`}
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        required
+                        defaultValue={major(item.rate)}
+                        onChange={(e) => amountChange(e, "rate")}
+                      />
+                    </label>
+                  </div>
+                  <div className="service-discount-frequency">
+                    <DiscountInput
+                      label={`Service discount ${index + 1}`}
+                      type={item.discount_type || "amount"}
+                      value={item.discount_value ?? item.discount ?? 0}
+                      onChange={(type, value) =>
+                        change({ discount_type: type, discount_value: value })
+                      }
+                    />
+                    <label>
+                      Payment frequency
+                      <select
+                        aria-label={`Payment frequency ${index + 1}`}
+                        value={item.billing_type}
+                        onChange={(e) =>
+                          change({
+                            billing_type: e.target
+                              .value as PackageItem["billing_type"],
+                          })
+                        }
+                      >
+                        <option value="monthly">Monthly</option>
+                        <option value="one-time">One-time</option>
+                      </select>
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    className="secondary"
+                    onClick={() =>
+                      setPackageItems(
+                        packageItems.filter((_, n) => n !== index),
+                      )
+                    }
+                  >
+                    Remove {item.name}
+                  </button>
+                </fieldset>
+              );
+            })}
+            <DiscountInput
+              label="Full-service discount"
+              type={packageDiscountType}
+              value={packageDiscount}
+              onChange={(type, value) => {
+                setPackageDiscountType(type);
+                setPackageDiscount(value);
+              }}
+            />
+            <p className="muted">
+              The full-service discount is shared proportionally across services
+              after each line discount. Only the monthly share repeats.
+            </p>
+            {packageError ? (
+              <p className="error" role="alert">
+                {packageError}
+              </p>
+            ) : (
+              <p className="grand">
+                First billing total: {formatMoney(packageNetPrice, currency)}
+              </p>
+            )}
+          </section>
+        )}
+        {kind === "invoice" &&
+        (availableCredit || previousBalance) &&
+        companyId === initial.company_id &&
+        currency === initial.currency ? (
+          <p className="notice">
+            Earlier unpaid balance:{" "}
+            {formatMoney(previousBalance || 0, currency)}. Available payment
+            credit: {formatMoney(availableCredit || 0, currency)}. Credit is
+            applied when issuing; earlier balances are listed separately.
+          </p>
+        ) : null}
         {kind === "expense" && (
           <p className="notice">
             This cost will be added once to the next new draft invoice for this
@@ -499,7 +935,8 @@ export function RecordEditor({
             Pending expenses are added automatically when a new draft is saved.
             Review the saved invoice before issuing. Repeating invoices use the
             billing day and advance notice in Settings; manage or stop the
-            schedule under Agreements.
+            schedule under Agreements. Available payment credit applies when
+            issuing; earlier unpaid balances are listed separately.
           </p>
         )}
         {kind === "invoice" && Boolean(initial.agreement_id) && (
@@ -561,6 +998,7 @@ export function RecordEditor({
                   min="0"
                   max="10000000000"
                   step="0.01"
+                  key={`${line.service_item_id || n}-${line.rate}`}
                   defaultValue={major(line.rate)}
                   required
                   onChange={(e) => {
@@ -593,50 +1031,64 @@ export function RecordEditor({
                 </button>
               </div>
             ))}
-            <div className="actions">
-              <button
-                type="button"
-                className="secondary"
-                onClick={() =>
-                  setLines([
-                    ...lines,
-                    { description: "", quantity: "1", rate: 0 },
-                  ])
-                }
-              >
-                + Add item
-              </button>
-              {services.length > 0 && (
-                <select
-                  aria-label="Add catalogue service"
-                  style={{ width: 240 }}
-                  value=""
-                  onChange={(e) => {
-                    const s = services[Number(e.target.value)];
-                    if (s)
-                      setLines([
-                        ...lines,
-                        {
-                          description: s.description || s.name,
-                          quantity: "1",
-                          rate: s.rate,
-                        },
-                      ]);
-                  }}
+            {
+              <div className="actions">
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={() =>
+                    setLines([
+                      ...lines,
+                      { description: "", quantity: "1", rate: 0 },
+                    ])
+                  }
                 >
-                  <option value="">Add from service catalogue</option>
-                  {services.map((s, i) => (
-                    <option
-                      value={i}
-                      key={i}
-                      disabled={s.currency !== currency}
-                    >
-                      {s.name} · {s.currency}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+                  + Add item
+                </button>
+                {services.length > 0 && (
+                  <select
+                    aria-label="Add catalogue service"
+                    style={{ width: 240 }}
+                    value=""
+                    onChange={(e) => {
+                      const s = services[Number(e.target.value)];
+                      if (s && s.currency === currency)
+                        setLines([
+                          ...lines,
+                          {
+                            description: s.description || s.name,
+                            quantity: "1",
+                            rate: s.rate,
+                          },
+                        ]);
+                    }}
+                  >
+                    <option value="">Add from service catalogue</option>
+                    {services.map((s, i) => (
+                      <option
+                        value={i}
+                        key={i}
+                        disabled={s.currency !== currency}
+                      >
+                        {s.name} · {s.currency}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            }
+            {previewLines.some((line) => line.discount) && (
+              <p className="muted">
+                Service discounts included:{" "}
+                {formatMoney(
+                  previewLines.reduce(
+                    (sum, line) => sum + (line.discount || 0),
+                    0,
+                  ),
+                  currency,
+                )}
+              </p>
+            )}
             {summary && (
               <div className="summary">
                 <p>
@@ -808,7 +1260,9 @@ export function RecordEditor({
           }}
         >
           <section className="card">
-            <h2 id="review-title">Review {kind}</h2>
+            <h2 id="review-title">
+              Review {kind === "project" ? "agreed services" : kind}
+            </h2>
             <p>
               Confirm the details below. Saving a draft does not issue or send
               it.
@@ -825,6 +1279,30 @@ export function RecordEditor({
                     }
                   </dd>
                 </>
+              )}
+              {kind === "service" && (
+                <div className="field service-parent-field">
+                  <label htmlFor="parent_id">Main service</label>
+                  <select
+                    id="parent_id"
+                    value={parentId}
+                    onChange={(e) => setParentId(e.target.value)}
+                  >
+                    <option value="">This is a main service</option>
+                    {services
+                      .filter(
+                        (s) =>
+                          !s.parent_id &&
+                          s.id !== id &&
+                          s.currency === currency,
+                      )
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
               )}
               {visibleFields.map((field) => {
                 const value = JSON.parse(payload)[field.key];
@@ -856,7 +1334,9 @@ export function RecordEditor({
                 Pending expenses are added automatically when a new draft is
                 saved. Review the saved invoice before issuing. Repeating
                 invoices use the billing day and advance notice in Settings;
-                manage or stop the schedule under Agreements.
+                manage or stop the schedule under Agreements. Available payment
+                credit applies when issuing; earlier unpaid balances are listed
+                separately.
               </p>
             )}
             {kind === "invoice" && Boolean(initial.agreement_id) && (
@@ -865,6 +1345,25 @@ export function RecordEditor({
                   Edit recurring schedule
                 </a>
               </p>
+            )}
+            {kind === "project" && (
+              <div>
+                <h3>Agreed services</h3>
+                {packageItems.map((item, n) => (
+                  <p key={n}>
+                    {item.name} · {item.billing_type} · {item.quantity} ×{" "}
+                    {formatMoney(item.rate, currency)} · Discount{" "}
+                    {formatMoney(serviceDiscount(item), currency)}
+                  </p>
+                ))}
+                <p>
+                  Full-service discount:{" "}
+                  {formatMoney(packageDiscountAmount, currency)}
+                </p>
+                <p className="grand">
+                  First billing total: {formatMoney(packageNetPrice, currency)}
+                </p>
+              </div>
             )}
             {hasRows && (
               <div className="table-wrap">
@@ -881,7 +1380,9 @@ export function RecordEditor({
                       <tr key={index}>
                         <td data-label="Service">{line.description}</td>
                         <td data-label="Quantity">{line.quantity}</td>
-                        <td data-label="Unit rate">{formatMoney(line.rate, currency)}</td>
+                        <td data-label="Unit rate">
+                          {formatMoney(line.rate, currency)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

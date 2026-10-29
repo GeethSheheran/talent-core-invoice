@@ -174,6 +174,8 @@ export async function financialAction(_: string, form: FormData) {
       }));
     else if (action === "send_invoice")
       ({ error } = await db.rpc("queue_invoice_email", { p_id: id }));
+    else if (action === "apply_available_credit")
+      ({ error } = await db.rpc("apply_available_credit", { p_invoice: id }));
     else return "Unknown action";
     if (error) return error.message;
   } catch {
@@ -237,4 +239,12 @@ export async function runPendingJobs() {
   const { processOutbox } = await import("@/lib/notifications/outbox");
   await processOutbox();
   revalidatePath("/notifications");
+}
+
+export async function deleteService(id: string) {
+  const { db } = await requireAdmin();
+  const { error } = await db.rpc("delete_service", { p_id: z.uuid().parse(id) });
+  if (error) return error.message;
+  revalidatePath("/services");
+  return "";
 }

@@ -123,17 +123,11 @@ describe("actual billing migrations", () => {
     ).toHaveLength(1);
     const j = await invoice(db, c);
     await issue(db, j);
-    const key = crypto.randomUUID();
-    await rpc(db, "allocate_credit", [
-      p,
-      [{ invoice_id: j, amount: 1000000 }],
-      key,
-    ]);
-    await rpc(db, "allocate_credit", [
-      p,
-      [{ invoice_id: j, amount: 1000000 }],
-      key,
-    ]);
+    // Issuing the next invoice consumes the remaining credit atomically.
+    expect(await rpc(db, "apply_available_credit", [j])).toBe(0);
+    expect((await issue(db, j)).snapshot).toMatchObject({
+      invoice: { credit_applied: 1000000 },
+    });
     expect(await balance(db, j)).toBe(1000000);
     await expect(
       rpc(db, "allocate_credit", [
@@ -331,4 +325,42 @@ describe("actual billing migrations", () => {
       (await db.query("select * from notification_events")).rows,
     ).toHaveLength(2);
   });
+});
+
+it("records and confirms a cheque payment with an invoice reference", async () => {
+  const c = await company(db);
+  const i = await invoice(db, c);
+  await issue(db, i);
+  const p = await rpc(db, "save_record", [
+    "payment",
+    null,
+    {
+      company_id: c,
+      currency: "LKR",
+      amount: 1000,
+      received_on: "2026-10-29",
+      method: "cheque",
+      reference: "INV-CHEQUE",
+    },
+  ]);
+  await rpc(db, "confirm_payment", [
+    p,
+    [{ invoice_id: i, amount: 1000 }],
+    brand,
+  ]);
+  const result = await db.query<{
+    method: string;
+    reference: string;
+    state: string;
+    receipt_number: string;
+  }>(
+    "select method,reference,state,receipt_number from public.payments where id=$1",
+    [p],
+  );
+  expect(result.rows[0]).toMatchObject({
+    method: "cheque",
+    reference: "INV-CHEQUE",
+    state: "confirmed",
+  });
+  expect(result.rows[0].receipt_number).toBeTruthy();
 });
