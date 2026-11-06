@@ -19,6 +19,7 @@ vi.mock("@/lib/notifications/preview", () => ({
 import { AccessError } from "../../src/lib/auth/require-admin";
 import { GET as workspace } from "../../src/app/api/companies/[id]/workspace/route";
 import { GET as preview } from "../../src/app/api/notifications/preview/route";
+import { GET as notificationRecord } from "../../src/app/api/notifications/record/route";
 const company = "10000000-0000-4000-8000-000000000001";
 const db = {};
 beforeEach(() => {
@@ -42,6 +43,16 @@ it.each([401, 403])(
     );
     expect(response.status).toBe(status);
     expect((await preview()).status).toBe(status);
+    expect(
+      (
+        await notificationRecord(
+          new Request(
+            "http://localhost/api/notifications/record?path=/services/" +
+              company,
+          ),
+        )
+      ).status,
+    ).toBe(status);
     expect(mocks.editor).not.toHaveBeenCalled();
     expect(mocks.record).not.toHaveBeenCalled();
     expect(mocks.preview).not.toHaveBeenCalled();
@@ -74,4 +85,46 @@ it("keeps recoverable editor errors explicit and notification reads private", as
   expect(notification.status).toBe(200);
   expect(mocks.preview).toHaveBeenCalledWith(db);
   expect(notification.headers.get("Cache-Control")).toBe("private, no-store");
+});
+
+it("notification records reject unlisted tables and expose only display fields", async () => {
+  const single = vi
+    .fn()
+    .mockResolvedValue({
+      data: {
+        name: "Hosting",
+        rate: 12000,
+        currency: "LKR",
+        secret: "hidden",
+        snapshot: { private: true },
+      },
+      error: null,
+    });
+  const eq = vi.fn(() => ({ maybeSingle: single }));
+  const select = vi.fn(() => ({ eq }));
+  const from = vi.fn(() => ({ select }));
+  mocks.admin.mockResolvedValue({ db: { from } });
+  const bad = await notificationRecord(
+    new Request(
+      "http://localhost/api/notifications/record?path=/audit_logs/" + company,
+    ),
+  );
+  expect(bad.status).toBe(400);
+  expect(from).not.toHaveBeenCalled();
+  const good = await notificationRecord(
+    new Request(
+      "http://localhost/api/notifications/record?path=/services/" + company,
+    ),
+  );
+  expect(good.status).toBe(200);
+  expect(from).toHaveBeenCalledWith("service_catalogue");
+  expect(eq).toHaveBeenCalledWith("id", company);
+  expect(await good.json()).toEqual({
+    details: [
+      { label: "name", value: "Hosting" },
+      { label: "currency", value: "LKR" },
+      { label: "rate", value: expect.stringContaining("120.00") },
+    ],
+  });
+  expect(good.headers.get("Cache-Control")).toBe("private, no-store");
 });

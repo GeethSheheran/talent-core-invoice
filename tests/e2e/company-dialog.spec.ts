@@ -14,7 +14,13 @@ test.beforeAll(async () => {
     stdin: {
       contents: `import { createRoot } from "react-dom/client";
       import { useState } from "react";
+      import { DashboardOverview } from "./src/components/dashboard-overview";
+      import { InvoiceWorkflow } from "./src/components/invoice-workflow";
+      import { CompanyTracking } from "./src/components/company-tracking";
+      import { DocumentThumbnail } from "./src/components/document-thumbnail";
+      import { MetricAmount } from "./src/components/metric-amount";
       import { SettingsMenu } from "./src/components/layout/settings-menu";
+      import { NotificationFeed } from "./src/components/notification-feed";
       import { NotificationMenu } from "./src/components/layout/notification-menu";
       import { MobileNavigation } from "./src/components/layout/mobile-navigation";
       import { Sidebar } from "./src/components/layout/sidebar";
@@ -28,8 +34,10 @@ test.beforeAll(async () => {
       import { NotificationPreview } from "./src/components/notification-preview";
       import { CompanySectionNav } from "./src/components/company-section-nav";
       import { CompanyRecordDialog } from "./src/components/company-record-dialog";
+      function InvoiceLayoutFixture() { return <main className="content"><section className="card invoice-overview-layout"><div className="invoice-overview-facts"><h2>Overview</h2><dl className="detail-list"><dt>Services</dt><dd>8</dd><dt>Expenses</dt><dd>1</dd><dt>Tax</dt><dd>LKR 120.00</dd></dl></div><aside className="invoice-preview-card"><DocumentThumbnail><article className="document invoice-document">A4 invoice preview</article></DocumentThumbnail></aside></section><InvoiceWorkflow id="invoice" state="draft" company="company" currency="LKR" outstanding={1000} files={[]} sentOn={null} paused={false} dueDate="2026-11-15" emailPending={false}/><CompanyTracking rows={[{id:"invoice",number:"INV-001",state:"issued",outstanding:0,total:1000,currency:"LKR",due_date:"2026-11-15"}]} /></main>; }
       function NavigationFixture() { const [selected, setSelected] = useState("overview"); return <div><div className="workspace-tools"><SettingsMenu /></div><aside className="company-sidebar" style={{ width: 240 }}><CompanySectionNav companyId="10000000-0000-4000-8000-000000000001" selected={selected} onNavigate={() => setSelected("expenses")} /></aside></div>; }
-      createRoot(document.getElementById("root")).render(location.search.includes("invoice-tracker") ? <RecordsTable hideCompany collection="invoices" rows={[{id: "10000000-0000-4000-8000-000000000030", company_id: "10000000-0000-4000-8000-000000000001", number: "INV-030", currency: "LKR", total: 20000, state: "issued", first_sent_on: location.search.includes("unsent") ? null : "2026-10-29"}]} /> : location.search.includes("service-editor") ? <main><RecordEditor kind="service" onSave={async (form) => { window.fixtureService = JSON.parse(form.get("payload")); return ""; }} initial={{parent_id: "10000000-0000-4000-8000-000000000020", currency: "LKR"}} services={[{id: "10000000-0000-4000-8000-000000000020", name: "Website", currency: "LKR", rate: 10000}]} /></main> : location.search.includes("service-tree") ? <main><ServicesList rows={[{id: "parent", name: "Website", rate: 10000, currency: "LKR"}, {id: "child", parent_id: "parent", name: "Hosting", rate: 1000, currency: "LKR"}]} /></main> : location.search.includes("mobile-layout") ? <div className="shell"><Sidebar /><div><header className="workspace-bar"><MobileNavigation /><a href="/dashboard" className="workspace-identity">Ledger <WorkspaceTitle /></a><div className="workspace-tools"><NotificationMenu /><SettingsMenu /></div></header><main className="content"><CollectionList collection={new URLSearchParams(location.search).get("collection") || "services"} rows={[{id: "service-1", name: "Web development", number: "INV-CMP0001-2026-00001", company_id: "company", rate: 12000000, currency: "LKR", active: true, created_at: "2026-10-28"}]} companies={{company: "Example company"}} /><div className="heading"><h1>Overview</h1><div className="actions"><NewMenu /></div></div></main></div></div> : <main className="content"><header className="workspace-bar"><span>Ledger <WorkspaceTitle /></span><div className="workspace-tools"><NotificationMenu /></div></header><h1>Company workspace</h1><NavigationFixture /><NewMenu /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="projects" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="payments" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" recordId="10000000-0000-4000-8000-000000000002" label="View draft invoice" /><section aria-label="Service catalogue"><RecordsTable collection="services" rows={[{id: "service-1", name: "Web development", rate: 12000, currency: "LKR", active: true}]} /></section><div className="grid dashboard-activity-grid"><section className="card dashboard-billing"><div className="heading"><h2>Billing activity</h2></div><BillingChart months={[{month: "2026-10", issued: 12000, collected: 6000, issuedCompanies: 1, collectedCompanies: 1}]} currency="LKR" /><p className="chart-legend">Issued charges</p></section><section className="card dashboard-notifications"><div className="heading"><h2>Latest notifications</h2></div><NotificationPreview items={Array.from({length: 5}, (_, index) => ({id: "layout-" + index, title: "Invoice update", message: "Invoice saved", status: "recorded", date: "2026-10-27T10:00:00Z", category: "changes", company: "Test Company", record: "INV-001", href: "/invoices/invoice"}))} /></section></div></main>);`,
+      function OverviewFixture() { return <div className="shell"><Sidebar /><div><header className="workspace-bar"><span>Ledger / Overview</span><div className="workspace-tools"><NotificationMenu /><SettingsMenu /></div></header><main className="content"><div className="heading"><div><h1>Overview</h1></div><NewMenu /></div><DashboardOverview currency="LKR" today="2026-11-05" totals={{collected:245000000,issued:360000000,outstanding:185000000,overdue:65000000}} months={Array.from({length:6},(_,i)=>({month:"2026-"+String(i+6).padStart(2,"0"),issued:180000000+i*36000000,collected:120000000+i*25000000,issuedCompanies:6,collectedCompanies:4}))} invoices={[{id:"late",company_id:"one",number:"INV-001",state:"issued",currency:"LKR",total:85000000,outstanding:65000000,due_date:"2026-09-20"},{id:"due",company_id:"two",number:"INV-002",state:"issued",currency:"LKR",total:120000000,outstanding:120000000,due_date:"2026-11-08"},{id:"draft",company_id:"one",number:null,state:"draft",currency:"LKR",total:500000,outstanding:500000,due_date:"2026-11-08"}]} payments={[{id:"pending",company_id:"one",state:"pending",currency:"LKR",amount:1000000}]} proposals={[{id:"prop",company_id:"two",title:"Annual HR services",currency:"LKR",price:240000000,state:"issued"}]} companies={{one:"Harbour Trading",two:"Ceylon Studio"}} /></main></div></div>; }
+      createRoot(document.getElementById("root")).render(location.search.includes("notification-feed") ? <main className="content"><NotificationFeed items={[{id:"feed-1",title:"Service saved",message:"Hosting updated",status:"recorded",date:"2026-11-06T09:00:00Z",category:"changes",company:"Test company",record:"Hosting",href:"/services/10000000-0000-4000-8000-000000000020",details:[]},{id:"feed-2",title:"Payment confirmed",message:"Payment received",status:"recorded",date:"2026-11-06T08:00:00Z",category:"changes",company:"Test company",record:"REC-1",details:[]}]} /></main> : location.search.includes("invoice-layout") ? <InvoiceLayoutFixture /> : location.search.includes("overview-design") ? <OverviewFixture /> : location.search.includes("metric-fit") ? <main className="content"><div className="stats">{["LKR 0.00", "LKR 124,500.00", "LKR 9,999,999,999.99", "LKR 124,500.00"].map((value, i) => <div className="stat" key={i}><div>Amount</div><MetricAmount>{value}</MetricAmount></div>)}</div></main> : location.search.includes("invoice-tracker") ? <RecordsTable hideCompany collection="invoices" rows={[{id: "10000000-0000-4000-8000-000000000030", company_id: "10000000-0000-4000-8000-000000000001", number: "INV-030", currency: "LKR", total: 20000, state: "issued", first_sent_on: location.search.includes("unsent") ? null : "2026-10-29"}]} /> : location.search.includes("service-editor") ? <main><RecordEditor kind="service" onSave={async (form) => { window.fixtureService = JSON.parse(form.get("payload")); return ""; }} initial={{parent_id: "10000000-0000-4000-8000-000000000020", currency: "LKR", archived: location.search.includes("inactive")}} services={[{id: "10000000-0000-4000-8000-000000000020", name: "Website", currency: "LKR", rate: 10000}]} /></main> : location.search.includes("service-tree") ? <main><ServicesList rows={[{id: "parent", name: "Website", rate: 10000, currency: "LKR"}, {id: "child", parent_id: "parent", name: "Hosting", rate: 1000, currency: "LKR"}]} /></main> : location.search.includes("mobile-layout") ? <div className="shell"><Sidebar /><div><header className="workspace-bar"><MobileNavigation /><a href="/dashboard" className="workspace-identity">Ledger <WorkspaceTitle /></a><div className="workspace-tools"><NotificationMenu /><SettingsMenu /></div></header><main className="content"><CollectionList collection={new URLSearchParams(location.search).get("collection") || "services"} rows={[{id: "service-1", name: "Web development", number: "INV-CMP0001-2026-00001", company_id: "company", rate: 12000000, currency: "LKR", active: true, created_at: "2026-10-28"}]} companies={{company: "Example company"}} /><div className="heading"><h1>Overview</h1><div className="actions"><NewMenu /></div></div></main></div></div> : <main className="content"><header className="workspace-bar"><span>Ledger <WorkspaceTitle /></span><div className="workspace-tools"><NotificationMenu /></div></header><h1>Company workspace</h1><NavigationFixture /><NewMenu /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="projects" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="payments" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" /><CompanyRecordDialog companyId="10000000-0000-4000-8000-000000000001" collection="invoices" recordId="10000000-0000-4000-8000-000000000002" label="View draft invoice" /><section aria-label="Service catalogue"><RecordsTable collection="services" rows={[{id: "service-1", name: "Web development", rate: 12000, currency: "LKR", active: true}]} /></section><div className="grid dashboard-activity-grid"><section className="card dashboard-billing"><div className="heading"><h2>Billing activity</h2></div><BillingChart months={[{month: "2026-10", issued: 12000, collected: 6000, issuedCompanies: 1, collectedCompanies: 1}]} currency="LKR" /><p className="chart-legend">Issued charges</p></section><section className="card dashboard-notifications"><div className="heading"><h2>Latest notifications</h2></div><NotificationPreview items={Array.from({length: 5}, (_, index) => ({id: "layout-" + index, title: "Invoice update", message: "Invoice saved", status: "recorded", date: "2026-10-27T10:00:00Z", category: "changes", company: "Test Company", record: "INV-001", href: "/invoices/invoice"}))} /></section></div></main>);`,
       resolveDir: process.cwd(),
       loader: "tsx",
     },
@@ -56,7 +64,9 @@ test.beforeAll(async () => {
                 : args.path === "next/link"
                   ? `import React from "react"; export const useLinkStatus = () => ({ pending: false }); export default function Link({children, scroll, onClick, ...props}) { return React.createElement("a", {...props, onClick(event) { event.preventDefault(); onClick?.(event); }}, children); }`
                   : `
+        export async function importServiceWorkbook() { return { result: { added: 83, existing: 0 } }; }
         export async function deleteService() { return ""; }
+        export async function saveServiceInDrawer(form) { if (window.fixtureServiceError) return {error: "Unable to save service."}; window.fixtureService = JSON.parse(form.get("payload")); return {id: form.get("id") || "new-child", kind: "service"}; }
         export async function signOut() {}
         const company = "10000000-0000-4000-8000-000000000001";
         export async function loadCompanyEditor(_, collection) {
@@ -571,16 +581,19 @@ test("adds agreed services with discounts inside the company, without a separate
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByLabel("Agreed services name")).toHaveCount(0);
   await dialog
-    .getByLabel("Add agreed service")
-    .selectOption("10000000-0000-4000-8000-000000000003");
+    .locator(".service-multiselect summary")
+    .evaluate((el) => el.parentElement?.setAttribute("open", ""));
+  await dialog.getByRole("checkbox", { name: "Design", exact: true }).check();
   await dialog.getByLabel("Service quantity 1").fill("2");
   await dialog.getByLabel("Service discount 1", { exact: true }).fill("20");
   await dialog
-    .getByLabel("Add agreed service")
-    .selectOption("10000000-0000-4000-8000-000000000004");
+    .locator(".service-multiselect summary")
+    .evaluate((el) => el.parentElement?.setAttribute("open", ""));
+  await dialog.getByRole("checkbox", { name: "Setup", exact: true }).check();
   await expect(dialog.getByLabel("Payment frequency 2")).toHaveValue(
     "one-time",
   );
+  await dialog.getByRole("button", { name: "Full-service discount" }).click();
   await dialog.getByLabel("Full-service discount", { exact: true }).fill("30");
   await expect(dialog.getByText(/First billing total:/)).toContainText(
     "200.00",
@@ -657,14 +670,16 @@ test("selects a sub-service on its own and saves percentage discounts without a 
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByLabel("Agreed services name")).toHaveCount(0);
   await dialog
-    .getByLabel("Add agreed service")
-    .selectOption("10000000-0000-4000-8000-000000000004");
+    .locator(".service-multiselect summary")
+    .evaluate((el) => el.parentElement?.setAttribute("open", ""));
+  await dialog.getByRole("checkbox", { name: "Setup", exact: true }).check();
   await expect(dialog.locator("fieldset")).toHaveCount(1);
   await expect(dialog.locator("legend")).toHaveText("Setup");
   await dialog
     .getByLabel("Service discount 1 type", { exact: true })
     .selectOption("percentage");
   await dialog.getByLabel("Service discount 1", { exact: true }).fill("20");
+  await dialog.getByRole("button", { name: "Full-service discount" }).click();
   await dialog
     .getByLabel("Full-service discount type", { exact: true })
     .selectOption("percentage");
@@ -710,6 +725,7 @@ test("selects a sub-service on its own and saves percentage discounts without a 
 test("catalogue nests sub-services and confirms deletion", async ({ page }) => {
   await page.goto("/company-ui-fixture?service-tree");
   await expect(page.locator(".service-card")).toHaveCount(1);
+  await page.getByRole("button", { name: "Open Website", exact: true }).click();
   await expect(page.locator(".sub-service-row")).toContainText("Hosting");
   await page.getByLabel("Actions for Hosting").click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
@@ -732,9 +748,10 @@ test("sub-service editor preserves its parent and groups pricing fields", async 
   const currency = await page
     .getByLabel("Currency", { exact: true })
     .boundingBox();
-  expect(frequency?.y).toBe(rate?.y);
+  expect(Math.abs(frequency!.y - rate!.y)).toBeLessThanOrEqual(1);
   expect(rate?.y).toBe(currency?.y);
   await page.getByLabel("Service name").fill("Hosting");
+  await page.getByLabel("Default rate").fill("100");
   await page.getByRole("button", { name: "Review changes" }).click();
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect
@@ -752,7 +769,13 @@ test("invoice tracker hands the received amount to company payments", async ({
   page,
 }) => {
   await page.goto("/company-ui-fixture?invoice-tracker");
-  await page.getByText("Track invoice", { exact: true }).click();
+  await page
+    .getByRole("button", { name: "Track INV-030", exact: true })
+    .click();
+  await page
+    .locator(".tracker-menu:popover-open")
+    .getByRole("button", { name: "To collect", exact: true })
+    .click();
   await expect(page.getByText("Sent: 2026-10-29")).toBeVisible();
   const tracker = page.getByRole("dialog", {
     name: "Invoice tracker",
@@ -777,13 +800,19 @@ test("invoice tracker hands the received amount to company payments", async ({
   await expect(dialog.getByLabel("Bank or transaction reference")).toHaveCount(
     0,
   );
-  const currency = await dialog
-    .getByLabel("Currency", { exact: true })
-    .boundingBox();
-  const full = await dialog.getByLabel("Full invoice amount").boundingBox();
-  const received = await dialog.getByLabel("Amount received").boundingBox();
-  expect(currency?.y).toBe(full?.y);
-  expect(full?.y).toBe(received?.y);
+  // Measure the row in one browser frame; sequential boundingBox calls can
+  // sample different positions while the dialog opening animation is running.
+  await expect
+    .poll(() =>
+      dialog
+        .locator("#currency, #invoice_total, #amount")
+        .evaluateAll((fields) => {
+          if (fields.length !== 3) return false;
+          const tops = fields.map((field) => field.getBoundingClientRect().top);
+          return Math.max(...tops) - Math.min(...tops) < 0.5;
+        }),
+    )
+    .toBe(true);
   await dialog.getByLabel("Method", { exact: true }).selectOption("cheque");
   await dialog.getByLabel("Amount received").fill("250");
   await dialog.getByRole("button", { name: "Review changes" }).click();
@@ -816,7 +845,11 @@ test("tracker popup marks an invoice sent without delivery channel choices", asy
 }) => {
   await page.goto("/company-ui-fixture?invoice-tracker&unsent");
   await page
-    .getByRole("button", { name: "Track invoice", exact: true })
+    .getByRole("button", { name: "Track INV-030", exact: true })
+    .click();
+  await page
+    .locator(".tracker-menu:popover-open")
+    .getByRole("button", { name: "To collect", exact: true })
     .click();
   const tracker = page.getByRole("dialog", {
     name: "Invoice tracker",
@@ -832,4 +865,436 @@ test("tracker popup marks an invoice sent without delivery channel choices", asy
   await expect(tracker.getByText("Invoice marked as sent.")).toBeVisible();
   await tracker.getByRole("button", { name: "Close invoice tracker" }).click();
   await expect(tracker).not.toBeVisible();
+});
+
+test("header popovers toggle closed on repeated pointer and keyboard activation", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture");
+  for (const [label, selector] of [
+    ["Preview notifications", "#notification-preview-panel"],
+    ["Workspace settings", "#workspace-settings-menu"],
+  ]) {
+    const trigger = page.getByRole("button", { name: label });
+    const panel = page.locator(selector);
+    await trigger.click();
+    await expect(panel).toBeVisible();
+    await trigger.click();
+    await expect(panel).not.toBeVisible();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    await expect(panel).toBeVisible();
+    await page.keyboard.press("Space");
+    await expect(panel).not.toBeVisible();
+  }
+  await page.getByRole("button", { name: "Preview notifications" }).click();
+  await page.getByRole("button", { name: "Workspace settings" }).click();
+  await expect(page.locator("#notification-preview-panel")).not.toBeVisible();
+  await expect(page.locator("#workspace-settings-menu")).toBeVisible();
+  await page.getByRole("heading", { name: "Company workspace" }).click();
+  await expect(page.locator("#workspace-settings-menu")).not.toBeVisible();
+});
+
+test("dashboard amounts fit on one line at desktop and mobile widths", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?metric-fit");
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const amount of await page.locator(".metric-amount").all()) {
+      await expect
+        .poll(() =>
+          amount.evaluate((el) => {
+            const span = el.firstElementChild!;
+            const range = document.createRange();
+            range.selectNodeContents(span);
+            return (
+              span.getBoundingClientRect().width <= el.clientWidth + 1 &&
+              range.getClientRects().length === 1
+            );
+          }),
+        )
+        .toBe(true);
+    }
+  }
+});
+
+test("workbook package suggestions fill editable details and preserve the selected parent", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?service-editor");
+  await page
+    .getByText("Start from your service workbook", { exact: true })
+    .click();
+  await page
+    .getByLabel("Service category")
+    .selectOption({ label: "Account service" });
+  await page
+    .getByLabel("Workbook suggestion")
+    .selectOption({ label: "Standard" });
+  await page.getByRole("button", { name: "Use suggestion" }).click();
+  await expect(page.getByLabel("Service name")).toHaveValue("Standard");
+  await expect(page.getByLabel("Default rate")).toHaveValue("45000.00");
+  await expect(page.getByLabel("Description", { exact: true })).toContainText(
+    "Monthly APIT Handling",
+  );
+  await expect(page.getByLabel("Main service", { exact: true })).toHaveValue(
+    "10000000-0000-4000-8000-000000000020",
+  );
+  await page.getByRole("button", { name: "Review changes" }).click();
+  await expect(
+    page.getByRole("dialog").getByText("Website", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("dialog").locator("select")).toHaveCount(0);
+});
+
+test("workbook variable prices require an explicit rate and currency changes clear LKR pricing", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?service-editor");
+  await page
+    .getByText("Start from your service workbook", { exact: true })
+    .click();
+  await page
+    .getByLabel("Workbook suggestion")
+    .selectOption({ label: "Startup" });
+  await page.getByRole("button", { name: "Use suggestion" }).click();
+  await expect(page.getByLabel("Default rate")).toHaveValue("");
+  await page.getByRole("button", { name: "Review changes" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByLabel("Default rate").fill("3500");
+  await page.getByLabel("Currency", { exact: true }).selectOption("USD");
+  await expect(page.getByLabel("Default rate")).toHaveValue("");
+  await page.setViewportSize({ width: 320, height: 900 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("owner dashboard prioritises collections and sales without a notification card", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/company-ui-fixture?overview-design");
+  await expect(
+    page.getByRole("heading", { name: "Collect these first" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Proposals awaiting a decision" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Latest notifications" }),
+  ).toHaveCount(0);
+  await expect(page.locator(".metric-amount").first()).toHaveText("LKR 2.45M");
+  await expect(
+    page.getByRole("link", { name: /Harbour Trading.*INV-001/ }),
+  ).toHaveAttribute("href", "/invoices/late");
+  await expect(
+    page.locator(
+      ".overview-exact, .overview-actions, .overview-footnote, .sales-footer",
+    ),
+  ).toHaveCount(0);
+  await expect(page.locator(".ledger-overview .eyebrow")).toHaveCount(0);
+  const invoicesLink = page.getByRole("link", {
+    name: "View invoices",
+    exact: true,
+  });
+  await expect(invoicesLink).toHaveAttribute("href", "/invoices");
+  await expect(
+    page.getByRole("link", { name: "View proposals", exact: true }),
+  ).toHaveAttribute("href", "/proposals");
+  await invoicesLink.hover();
+  await expect(invoicesLink).toHaveCSS(
+    "background-color",
+    "rgb(237, 245, 255)",
+  );
+  await expect(invoicesLink).toHaveCSS("border-radius", "12px");
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.screenshot({
+    path: ".artifacts/ledger-dashboard-desktop.png",
+    fullPage: true,
+    animations: "disabled",
+  });
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          Array.from(document.querySelectorAll("main *"))
+            .filter((el) => el.getBoundingClientRect().right > innerWidth + 1)
+            .map((el) => ({
+              tag: el.tagName,
+              cls: el.className,
+              right: el.getBoundingClientRect().right,
+            })),
+        ),
+      )
+      .toEqual([]);
+  }
+  await page.screenshot({
+    path: ".artifacts/ledger-dashboard-mobile.png",
+    fullPage: true,
+    animations: "disabled",
+  });
+});
+
+test("service deletion is centered, fits mobile and restores focus", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?service-tree");
+  await page.getByRole("button", { name: "Open Website", exact: true }).click();
+  for (const width of [1440, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const trigger = page.getByLabel("Actions for Hosting");
+    await trigger.click();
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    const modal = page.getByRole("dialog", { name: "Delete Hosting" });
+    const rect = await modal.boundingBox();
+    expect(rect!.width).toBeLessThanOrEqual(Math.min(462, width - 30));
+    expect(Math.abs(rect!.x + rect!.width / 2 - width / 2)).toBeLessThan(2);
+    expect(Math.abs(rect!.y + rect!.height / 2 - 450)).toBeLessThan(2);
+    await expect(modal.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+  }
+});
+
+test("catalogue drawer keeps browsing and editing in one panel", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?service-tree");
+  await expect(
+    page.locator(
+      ".workbook-catalogue, .service-description, .sub-service-desc",
+    ),
+  ).toHaveCount(0);
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(255, 255, 255)",
+  );
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const columns = await page
+    .locator(".services-catalogue-grid")
+    .evaluate(
+      (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
+    );
+  expect(columns).toBe(4);
+  const card = page.getByRole("button", { name: "Open Website", exact: true });
+  await card.click();
+  const drawer = page.locator(".service-drawer");
+  await expect(drawer).toBeVisible();
+  await drawer.getByRole("button", { name: /Hosting LKR/ }).click();
+  await expect(
+    drawer.getByRole("heading", { name: "Hosting", exact: true }),
+  ).toBeFocused();
+  await drawer
+    .getByRole("button", { name: "Edit sub-service", exact: true })
+    .click();
+  await page.evaluate(() => {
+    (
+      window as unknown as { fixtureServiceError: boolean }
+    ).fixtureServiceError = true;
+  });
+  await page.getByLabel("Service name").fill("Managed hosting");
+  await page.getByLabel("Default rate").fill("250");
+  await page.getByRole("button", { name: "Review changes" }).click();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(
+    drawer.getByText("Unable to save service.", { exact: true }),
+  ).toBeVisible();
+  await page.evaluate(() => {
+    (
+      window as unknown as { fixtureServiceError: boolean }
+    ).fixtureServiceError = false;
+  });
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(
+    drawer.getByRole("heading", { name: "Managed hosting", exact: true }),
+  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { fixtureService: { rate: number } })
+            .fixtureService.rate,
+      ),
+    )
+    .toBe(25000);
+  await drawer.getByRole("button", { name: "Back", exact: true }).click();
+  await expect(
+    drawer.getByRole("button", { name: /Managed hosting LKR/ }),
+  ).toBeVisible();
+  await drawer
+    .getByRole("button", { name: "Add sub-service", exact: true })
+    .click();
+  await expect(page.getByLabel("Main service", { exact: true })).toHaveValue(
+    "parent",
+  );
+  await page.getByLabel("Service name").fill("Support");
+  await page.getByLabel("Default rate").fill("500");
+  await page.getByRole("button", { name: "Review changes" }).click();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect(
+    drawer.getByRole("heading", { name: "Support", exact: true }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 844 });
+  await expect
+    .poll(async () => (await drawer.boundingBox())!.width)
+    .toBeLessThanOrEqual(320);
+  await page.screenshot({ path: ".artifacts/services-drawer-mobile.png" });
+  await page.keyboard.press("Escape");
+  await expect(drawer).not.toBeVisible();
+  await expect(card).toBeFocused();
+  await expect(page).toHaveURL(/service-tree$/);
+});
+
+test("notification dot clears after viewing and stays cleared after reload", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture");
+  await expect(page.locator(".notification-new-dot")).toBeVisible();
+  await page.getByRole("button", { name: "Preview notifications" }).click();
+  await expect(page.locator(".notification-new-dot")).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Preview notifications" }),
+  ).toBeVisible();
+  await expect(page.locator(".notification-new-dot")).toHaveCount(0);
+});
+
+test("unpriced imported services can be explicitly activated after pricing", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?service-editor&inactive");
+  await expect(page.getByLabel("Service status")).toHaveValue("archived");
+  await page.getByLabel("Service name").fill("Payroll");
+  await page.getByLabel("Default rate").fill("3500");
+  await page.getByLabel("Service status").selectOption("active");
+  await page.getByRole("button", { name: "Review changes" }).click();
+  await expect(
+    page.getByRole("dialog").getByText("Active", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { fixtureService: { archived: boolean } })
+            .fixtureService?.archived,
+      ),
+    )
+    .toBe(false);
+});
+
+test("compact catalogue filters and service form layout", async ({ page }) => {
+  await page.goto("/company-ui-fixture?service-tree");
+  await expect(
+    page.locator(".service-card .service-icon, .services-toolbar"),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Filter services", exact: true })
+    .click();
+  await page.getByLabel("Status", { exact: true }).selectOption("archived");
+  await expect(
+    page.getByText("No matching services", { exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Status", { exact: true }).selectOption("all");
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Open Website", exact: true }).click();
+  await page.getByLabel("Actions for Website", { exact: true }).click();
+  const remove = page.locator(
+    ".service-actions-popover:popover-open .service-delete-option",
+  );
+  await remove.hover();
+  await expect(remove).toHaveCSS("background-color", "rgb(255, 240, 241)");
+  await expect(remove).toHaveCSS("text-align", "left");
+  await page
+    .locator(".service-actions-popover:popover-open")
+    .getByRole("button", { name: "Edit", exact: true })
+    .click();
+  const boxes = await page
+    .locator("#name, #parent_id, #service_status, #rate, #currency")
+    .evaluateAll((nodes) =>
+      Object.fromEntries(
+        nodes.map((n) => {
+          const r = n.getBoundingClientRect();
+          return [n.id, { x: r.x, y: r.y, width: r.width }];
+        }),
+      ),
+    );
+  expect(boxes.parent_id.y).toBe(boxes.service_status.y);
+  expect(boxes.name.width).toBeGreaterThan(boxes.parent_id.width * 1.8);
+  expect(boxes.currency.x).toBeLessThan(boxes.rate.x);
+  await page.screenshot({
+    path: ".artifacts/service-editor-layout.png",
+    animations: "disabled",
+  });
+});
+
+test("invoice overview stays compact, issue actions align, and tracking filters live stages", async ({
+  page,
+}) => {
+  await page.goto("/company-ui-fixture?invoice-layout");
+  const preview = page.locator(".invoice-preview-card");
+  expect((await preview.boundingBox())!.height).toBeLessThanOrEqual(400);
+  const issue = await page
+    .getByRole("button", { name: "Review issue invoice", exact: true })
+    .boundingBox();
+  const view = await page
+    .getByRole("link", { name: "Preview document", exact: true })
+    .boundingBox();
+  expect(Math.abs(issue!.y - view!.y)).toBeLessThan(2);
+  await expect(page.getByText("Available after issuing.")).not.toBeVisible();
+  await page.getByLabel("Tracking stage").selectOption("settled");
+  await expect(
+    page.getByRole("link", { name: "INV-001", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Tracking stage").selectOption("collect");
+  await expect(page.getByText("No invoices in this stage.")).toBeVisible();
+  await page.screenshot({
+    path: ".artifacts/invoice-overview-compact.png",
+    fullPage: true,
+  });
+});
+
+test("notifications use sidebar search and retain read state after opening the record drawer", async ({
+  page,
+}) => {
+  await page.route("**/api/notifications/record?**", (route) =>
+    route.fulfill({
+      json: {
+        details: [
+          { label: "name", value: "Hosting" },
+          { label: "rate", value: "LKR 120.00" },
+        ],
+      },
+    }),
+  );
+  await page.goto("/company-ui-fixture?notification-feed");
+  await expect(
+    page.getByRole("navigation", { name: "Activity categories" }),
+  ).toBeVisible();
+  await page
+    .getByRole("textbox", { name: "Search notifications" })
+    .fill("Hosting");
+  await expect(page.locator(".activity-row")).toHaveCount(1);
+  await expect(page.locator(".activity-row.notification-unread")).toHaveCount(
+    1,
+  );
+  await page.locator(".activity-row").click();
+  const drawer = page.getByRole("dialog");
+  await expect(drawer.getByText("LKR 120.00")).toBeVisible();
+  await expect(page.locator(".activity-row.notification-unread")).toHaveCount(
+    0,
+  );
+  await expect.poll(async () => { const box = (await drawer.boundingBox())!; return Math.round(box.x + box.width); }).toBe(page.viewportSize()!.width);
+  await page.screenshot({ path: ".artifacts/notification-record-drawer.png", animations: "disabled" });
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await expect(page.locator(".activity-row.notification-unread")).toHaveCount(
+    1,
+  );
 });

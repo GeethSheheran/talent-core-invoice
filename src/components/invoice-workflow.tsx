@@ -58,12 +58,20 @@ export function InvoiceWorkflow({
                   Check the preview, then issue the invoice to reserve its
                   number.
                 </p>
-                <FinancialForm
-                  action="issue_invoice"
-                  id={id}
-                  label="Issue invoice"
-                  compact
-                />
+                <div className="actions invoice-issue-actions">
+                  <FinancialForm
+                    action="issue_invoice"
+                    id={id}
+                    label="Issue invoice"
+                    compact
+                  />
+                  <Link
+                    className="button secondary"
+                    href={`/invoices/${id}/preview`}
+                  >
+                    Preview document
+                  </Link>
+                </div>
               </>
             ) : (
               <p className="muted">

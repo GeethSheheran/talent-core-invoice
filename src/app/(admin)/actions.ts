@@ -72,6 +72,11 @@ export async function saveCompanyRecord(companyId: string, form: FormData) {
     return { error: "Use the record editor to edit an existing record." };
   return persistRecord(form, company);
 }
+export async function saveServiceInDrawer(form: FormData) {
+  await requireAdmin();
+  if (form.get("kind") !== "service") return { error: "Invalid service form." };
+  return persistRecord(form);
+}
 export async function saveRecord(_: string, form: FormData) {
   const result = await persistRecord(form);
   if ("error" in result) return result.error || "Unable to save.";
@@ -243,8 +248,39 @@ export async function runPendingJobs() {
 
 export async function deleteService(id: string) {
   const { db } = await requireAdmin();
-  const { error } = await db.rpc("delete_service", { p_id: z.uuid().parse(id) });
+  const { error } = await db.rpc("delete_service", {
+    p_id: z.uuid().parse(id),
+  });
   if (error) return error.message;
   revalidatePath("/services");
   return "";
+}
+
+export async function importServiceWorkbook() {
+  const { db } = await requireAdmin();
+  const [
+    { default: groups },
+    { importWorkbookCatalogue },
+    { createRecordReader },
+  ] = await Promise.all([
+    import("@/lib/services/workbook-catalogue.json"),
+    import("@/lib/services/import-workbook"),
+    import("@/lib/db/repositories/records"),
+  ]);
+  const result = await importWorkbookCatalogue({
+    atomic: async () =>
+      db.rpc("import_service_catalogue", { p_groups: groups }),
+    list: () => createRecordReader(db).allRows("service_catalogue"),
+    save: async (id, data) => {
+      const response = await db.rpc("save_record", {
+        p_kind: "service",
+        p_id: id,
+        p_data: data,
+      });
+      if (response.error) throw new Error("Service save failed");
+    },
+  });
+  // Fallback saves are individual transactions, so refresh even on interruption.
+  revalidatePath("/services");
+  return result;
 }

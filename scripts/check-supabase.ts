@@ -30,6 +30,16 @@ async function probe(label: string, path: string, key?: string) {
   }
 }
 const results = await Promise.all([
+  probe(
+    "Service hierarchy / server key",
+    "/rest/v1/service_catalogue?select=id,parent_id,billing_type&limit=0",
+    secret,
+  ),
+  probe(
+    "Agreed service discounts / server key",
+    "/rest/v1/projects?select=items,discount_type,discount_value&limit=0",
+    secret,
+  ),
   probe("Auth / publishable key", "/auth/v1/settings", publishable),
   probe("Signing keys", "/auth/v1/.well-known/jwks.json"),
   probe(

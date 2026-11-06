@@ -808,7 +808,6 @@ created_by: string | null;
 outstanding: number | null;
 };Relationships: []; };
 }; Functions: {
-delete_service: { Args: { p_id: string }; Returns: undefined };
 accept_proposal: { Args: {p_id: string;}; Returns: undefined; };
 allocate_credit: { Args: {p_id: string;p_allocations: Json;p_key: string;}; Returns: undefined; };
 apply_available_credit: { Args: {p_invoice: string;}; Returns: number; };
@@ -816,7 +815,9 @@ apply_credit: { Args: {p_invoice: string;p_amount: number;p_reason: string;p_key
 attach_pending_expenses: { Args: {p_invoice: string;p_expenses: Json;}; Returns: number; };
 claim_jobs: { Args: {p_limit: number;}; Returns: Database['public']['Tables']['outbox_jobs']['Row'][]; };
 confirm_payment: { Args: {p_id: string;p_allocations: Json;p_brand: Json;}; Returns: Json; };
+delete_service: { Args: {p_id: string;}; Returns: undefined; };
 generate_monthly_draft: { Args: {p_agreement: string;p_period: string;}; Returns: string; };
+import_service_catalogue: { Args: {p_groups: Json;}; Returns: Json; };
 issue_invoice: { Args: {p_id: string;p_brand: Json;}; Returns: Json; };
 issue_proposal: { Args: {p_id: string;p_brand: Json;}; Returns: Json; };
 mark_external: { Args: {p_id: string;p_channel: string;}; Returns: undefined; };

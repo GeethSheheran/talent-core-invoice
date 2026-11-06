@@ -18,18 +18,14 @@ export function SettingsMenu() {
         className="settings-menu-button"
         aria-label="Workspace settings"
         aria-controls="workspace-settings-menu"
+        popoverTarget="workspace-settings-menu"
+        popoverTargetAction="toggle"
         aria-expanded={open}
         onClick={() => {
           if (!menu.current || !button.current) return;
-          if (menu.current.matches(":popover-open")) {
-            close();
-            return;
-          }
           const rect = button.current.getBoundingClientRect();
           menu.current.style.left = `${Math.max(12, Math.min(rect.right - 260, window.innerWidth - 272))}px`;
           menu.current.style.top = `${Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - 290))}px`;
-          menu.current.showPopover();
-          setOpen(true);
         }}
       >
         <Settings size={18} aria-hidden="true" />

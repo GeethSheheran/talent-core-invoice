@@ -1,10 +1,15 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { NotificationRecord } from "@/components/notification-record";
 import Link from "@/components/navigation-link";
-import { Bell, ChevronRight, X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { ActivityItem } from "@/lib/notifications/feed";
+import {
+  activityIcon,
+  useNotificationRead,
+} from "@/components/notification-state";
 export type NotificationPreviewItem = Pick<
   ActivityItem,
   | "id"
@@ -28,9 +33,12 @@ function dateLabel(date: string) {
 }
 export function NotificationPreview({
   items,
+  userId = "workspace",
 }: {
   items: NotificationPreviewItem[];
+  userId?: string;
 }) {
+  const { read, markRead } = useNotificationRead(userId);
   const [selected, setSelected] = useState<NotificationPreviewItem | null>(
     null,
   );
@@ -49,46 +57,54 @@ export function NotificationPreview({
   return (
     <>
       <ul className="notification-preview-list">
-        {items.map((item) => (
-          <li key={item.id}>
-            <button
-              type="button"
-              className="notification-row"
-              onClick={() => {
-                setSelected(item);
-                dialog.current?.showModal();
-              }}
-              aria-haspopup="dialog"
-            >
-              <span className="notification-row-icon">
-                <Bell size={17} aria-hidden="true" />
-              </span>
-              <span className="notification-row-copy">
-                <span className="notification-row-company">
-                  {item.company ||
-                    (item.category === "system"
-                      ? "Workspace"
-                      : "Company unavailable")}
+        {items.map((item) => {
+          const Icon = activityIcon(item);
+          return (
+            <li key={item.id}>
+              <button
+                type="button"
+                className={`notification-row ${read.has(item.id) ? "" : "notification-unread"}`}
+                onClick={() => {
+                  markRead(item.id);
+                  setSelected(item);
+                  dialog.current?.showModal();
+                }}
+                aria-haspopup="dialog"
+              >
+                <span className="notification-row-icon">
+                  <Icon size={17} aria-hidden="true" />
                 </span>
-                <span className="notification-row-title">{item.title}</span>
-                <span className="notification-row-record">
-                  {item.record || "Workspace activity"}
+                <span className="notification-row-copy">
+                  <span className="notification-row-company">
+                    {item.company ||
+                      (item.category === "system"
+                        ? "Workspace"
+                        : "Company unavailable")}
+                  </span>
+                  <span className="notification-row-title">
+                    {!read.has(item.id) && (
+                      <span className="unread-dot" aria-label="Unread" />
+                    )}
+                    {item.title}
+                  </span>
+                  <span className="notification-row-record">
+                    {item.record || "Workspace activity"}
+                  </span>
                 </span>
-              </span>
-              <span className="notification-row-meta">
-                <StatusBadge state={item.status} />
-                <time dateTime={item.date}>{dateLabel(item.date)}</time>
-              </span>
-              <ChevronRight size={14} aria-hidden="true" />
-            </button>
-          </li>
-        ))}
+                <span className="notification-row-meta">
+                  <StatusBadge state={item.status} />
+                  <time dateTime={item.date}>{dateLabel(item.date)}</time>
+                </span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
       {selected &&
         createPortal(
           <dialog
             ref={dialog}
-            className="company-dialog notification-detail-dialog"
+            className="company-dialog notification-detail-dialog notification-slide"
             aria-labelledby={titleId}
             onClick={(event) => {
               if (event.target === event.currentTarget) dialog.current?.close();
@@ -120,6 +136,7 @@ export function NotificationPreview({
                 {dateLabel(selected.date)}
               </time>
               <p className="notification-detail-message">{selected.message}</p>
+              <NotificationRecord key={selected.id} href={selected.href} />
               {selected.href && (
                 <Link className="view-all-link" href={selected.href}>
                   Open record <ChevronRight size={14} aria-hidden="true" />

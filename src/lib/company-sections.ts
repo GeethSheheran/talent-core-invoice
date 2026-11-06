@@ -10,6 +10,7 @@ export type CompanyCollection = (typeof companyCollections)[number];
 export const companySections = [
   "overview",
   ...companyCollections,
+  "tracking",
   "statement",
 ] as const;
 export type CompanySection = (typeof companySections)[number];
@@ -34,5 +35,6 @@ export const sectionLabels: Record<CompanySection, string> = {
   invoices: "Invoices",
   payments: "Payments & receipts",
   expenses: "Expenses",
+  tracking: "Tracking",
   statement: "Statement",
 };

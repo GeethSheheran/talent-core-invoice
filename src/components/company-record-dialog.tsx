@@ -134,7 +134,12 @@ export function CompanyRecordDialog({
         <header className="company-dialog-header">
           <div>
             <div className="eyebrow">Company workspace</div>
-            <h2 id={`dialog-${collection}-${recordId || "new"}`}>{title}</h2>
+            <h2 id={`dialog-${collection}-${recordId || "new"}`}>
+              {title}
+              {kind === "project" &&
+                editor &&
+                ` for ${editor.companies.find((company) => company.id === companyId)?.name || "this company"}`}
+            </h2>
           </div>
           <button
             type="button"
@@ -191,6 +196,7 @@ export function CompanyRecordDialog({
                   }
                   setSavedId(result.id);
                   setSaved(true);
+                  window.dispatchEvent(new Event("billing-updated"));
                   setEditor(undefined);
                   await readRecord(result.id);
                   return "";
@@ -214,6 +220,16 @@ export function CompanyRecordDialog({
                     `Draft ${kind}`,
                 )}
               </h3>
+              {collection === "payments" && (
+                <a
+                  className="button secondary receipt-preview-link"
+                  href={`/payments/${row.id}/preview`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Preview receipt
+                </a>
+              )}
               {typeof row.state === "string" && <StatusBadge state={state} />}
               <dl className="detail-list">
                 {Object.entries(row)

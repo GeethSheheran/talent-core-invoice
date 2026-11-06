@@ -1,0 +1,231 @@
+[
+  {
+    "name": "HR Service",
+    "suggestions": [
+      {
+        "name": "Startup",
+        "description": "• Payroll\n• Attendnace Records\n• Leave Management\n• ETF\n• EPF / EPF\n• Payee  Tax Filling\n• Coordination with Labour department & Central Bank for Payroll Matters\n• Payslips\n\nWorkbook pricing (LKR):\n1-5 company: 3500.0\n6-10 company: 6500.0\n11-20 company: 12000.0\n21 - 30 company: 16500.0\n30 Plus: 500.0\nConfirm the company bands and 30 Plus basis before setting a rate.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Gold",
+        "description": "• Payroll\n• Attendnace Records\n• Leave Management\n• ETF\n• EPF / EPF\n• Payee  Tax Filling\n• Payslips\n• Coordination with Labour department & Central Bank for Payroll Matters\n• Recruitment\n• Personal File Management (Appointment letters and other  HR related Letters )\n\nWorkbook pricing (LKR):\n1-5 company: 4500.0\n6-10 company: 8500.0\n11-20 company: 16000.0\n21 - 30 company: 22500.0\n30 Plus: 700.0\nConfirm the company bands and 30 Plus basis before setting a rate.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Premium",
+        "description": "• Payroll\n• Attendnace Records\n• Leave Management\n• ETF\n• EPF / EPF\n• Payslips\n• Payee  Tax Filling\n• Personal File Management (Appointment letters and other  HR related Letters )\n• Recruitment\n• All Matters of Labour department\n• Performance Management\n• Traning & Development\n• Employee Relations\n• Grivances Handling\n• Diciplinary Management\n• HR policy & Process Development\n• Insurance Benefit cooridnation\n• Employee welfare benefit Management\n• Engagment activites organizing and coordination\n\nWorkbook pricing (LKR):\n1-5 company: 6000.0\n6-10 company: 11500.0\n11-20 company: 22000.0\n21 - 30 company: 31500.0\n30 Plus: 1000.0\nConfirm the company bands and 30 Plus basis before setting a rate.",
+        "rate": null,
+        "billing_type": "monthly"
+      }
+    ]
+  },
+  {
+    "name": "Account service",
+    "suggestions": [
+      {
+        "name": "Basic",
+        "description": "• Online Bookkeeping\n• Monthly Profit or Loss Report\n• Monthly Balance Sheet\n• Monthly Cash Flow Management\n• Monthly Ledger\n• Estimated Tax Return (CIT)\n• Quarterly CIT Payments\n• Final Tax Return (CIT)\n\nWorkbook transaction band: >100 — confirm this threshold with the client.",
+        "rate": 3000000,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Standard",
+        "description": "• Online Bookkeeping\n• Monthly Profit or Loss Report\n• Monthly Balance Sheet\n• Monthly Cash Flow Management\n• Monthly Ledger\n• Estimated Tax Return (CIT)\n• Quarterly CIT Payments\n• Final Tax Return (CIT)\n• Monthly APIT Handling\n• T10/APIT Certificates\n• Monthly WHT Handling\n• WHT Certificates\n\nWorkbook transaction band: >400 — confirm this threshold with the client.",
+        "rate": 4500000,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Premium",
+        "description": "• Online Bookkeeping\n• Monthly Profit or Loss Report\n• Monthly Balance Sheet\n• Monthly Cash Flow Management\n• Monthly Ledger\n• Estimated Tax Return (CIT)\n• Quarterly CIT Payments\n• Final Tax Return (CIT)\n• Monthly APIT Handling\n• T10/APIT Certificates\n• Monthly WHT Handling\n• WHT Certificates\n• Monthly VAT Handling\n• Monthly SSCL Handling\n\nWorkbook transaction band: 400 < — confirm this threshold with the client.",
+        "rate": 6000000,
+        "billing_type": "monthly"
+      }
+    ]
+  },
+  {
+    "name": "Corporate Service",
+    "suggestions": [
+      {
+        "name": "Business Incorporation",
+        "description": "",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Busienss Name Registration",
+        "description": "",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "VAT Registration",
+        "description": "",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "TAX Registration",
+        "description": "",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "EPF/ETF Registration",
+        "description": "",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Secretary Service",
+        "description": "",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Business Incorporation — Basic",
+        "description": "• Company Incorporation Advice\n• Name Approval\n• Articles of Association\n• Form 01\n• Form 18\n• Form 19\n• BO Application Submitting\n• Incorporation Certificate (BR)\n• Certified Form 1",
+        "rate": 4050000,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Business Incorporation — Standard",
+        "description": "• Company Incorporation Advice\n• Name Approval\n• Articles of Association\n• Form 01\n• Form 18\n• Form 19\n• Incorporation Certificate (BR)\n• Certified Form 1\n• Certified Articles Of Association\n• BO Application Submitting\n• Board Resolution for Corporate Bank Account\n• Director Seal\n• Free Consultation\n• Free Tax Registration\n• Free 6 Month secretary Service",
+        "rate": 5050000,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Business Incorporation — Premium",
+        "description": "• Company Incorporation Advice\n• Name Approval\n• Articles of Association\n• Form 01\n• Form 18\n• Form 19\n• Incorporation Certificate (BR)\n• Certified Form 1\n• Certified Articles Of Association\n• BO Application Submitting\n• Board Resolution for Corporate Bank Account\n• Director Seal\n• Company Seal\n• Embossed seal\n• Free Consultation\n• Free Tax Registration\n• Free Year secretary Service",
+        "rate": 6550000,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "Digital Marketing",
+    "suggestions": [
+      {
+        "name": "Social Media Handling",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Web Development",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "AI Video Creation",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Commercial AD Creation",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "System Implementation",
+    "suggestions": [
+      {
+        "name": "Talentcore HR - HRIS",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "POS System",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Finger Machine Integration",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Service Management System - Ledger.",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Productuin Flow management system",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Customized management tool design",
+        "description": "Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "Strategic Proposal Writing",
+    "suggestions": []
+  },
+  {
+    "name": "Certification  Award",
+    "suggestions": []
+  },
+  {
+    "name": "HRIS System",
+    "suggestions": [
+      {
+        "name": "Monthly",
+        "description": "• Employee Management\n• Attendance Management\n• Leave Management\n• Payroll Management\n• Loan Management\n• Performance Management\n• Event Management\n• EPF / ETF / Pay slips / Paysheets\n• Employee Portal\n\nWorkbook pricing: 300.0 per head; confirm quantity before billing.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Life Time",
+        "description": "• Employee Management\n• Attendance Management\n• Leave Management\n• Payroll Management\n• Loan Management\n• Performance Management\n• Event Management\n• EPF / ETF / Pay slips / Paysheets\n• Employee Portal\n\nWorkbook pricing: One Time Payment - Rs.300,000.00\nAnnual Maintenance Cost - Rs. 25,000.00\nConfirm maintenance billing separately.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "Recruitment",
+    "suggestions": [
+      {
+        "name": "Labour",
+        "description": "Draft workbook rate: 30%. Price list is not finalised; confirm the salary basis and fee before billing.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Non Executives",
+        "description": "Draft workbook rate: 50%. Price list is not finalised; confirm the salary basis and fee before billing.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Executive's",
+        "description": "Draft workbook rate: 65%. Price list is not finalised; confirm the salary basis and fee before billing.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Manager & Above",
+        "description": "Draft workbook rate: 80%. Price list is not finalised; confirm the salary basis and fee before billing.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  }
+]

@@ -266,6 +266,26 @@ describe("automatic payment credit", () => {
     expect(await balance(db, first)).toBe(2000);
     expect((await issue(db, first)).snapshot).toEqual(issued.snapshot);
   });
+  it("keeps a reduced allocation as credit and applies it once to the next invoice", async () => {
+    const c = await company(db);
+    const first = await invoice(db, c, 10000);
+    await issue(db, first);
+    const p = await payment(db, c, 10000);
+    await rpc(db, "confirm_payment", [
+      p,
+      [{ invoice_id: first, amount: 6000 }],
+      brand,
+    ]);
+    expect(await balance(db, first)).toBe(4000);
+    const next = await invoice(db, c, 7000);
+    const issued = await issue(db, next);
+    expect(issued.snapshot).toMatchObject({
+      invoice: { credit_applied: 4000, balance_at_issue: 3000 },
+    });
+    expect(await balance(db, next)).toBe(3000);
+    expect(await balance(db, first)).toBe(4000);
+    expect(await rpc(db, "apply_available_credit", [next])).toBe(0);
+  });
   it("does not use another currency's credit and blocks non-admin/anonymous RPCs", async () => {
     const c = await company(db);
     const p = await payment(db, c, 3000, { currency: "USD" });
@@ -381,7 +401,10 @@ describe("catalogue deletion", () => {
       ).rows,
     ).toHaveLength(1);
   });
-  it("blocks outsiders and preserves a parent with sub-services", async () => {
+  it("blocks outsiders and keeps children when deleting their parent", async () => {
+    const owner = await company(db);
+    const inv = await invoice(db, owner, 12500);
+    await issue(db, inv);
     const parent = await rpc(db, "save_record", [
       "service",
       null,
@@ -392,9 +415,15 @@ describe("catalogue deletion", () => {
       null,
       { name: "Child", rate: 100, currency: "LKR", parent_id: parent },
     ]);
-    await expect(rpc(db, "delete_service", [parent])).rejects.toThrow(
-      /sub-services/,
-    );
+    await rpc(db, "delete_service", [parent]);
+    expect(await balance(db, inv)).toBe(12500);
+    expect(
+      (
+        await db.query(
+          "select parent_id,rate from public.service_catalogue where name='Child'",
+        )
+      ).rows,
+    ).toEqual([{ parent_id: null, rate: 100 }]);
     await db.exec(
       `select set_config('request.jwt.claim.sub','${OUTSIDER}',false)`,
     );

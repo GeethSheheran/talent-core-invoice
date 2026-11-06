@@ -23,6 +23,7 @@ const icons = {
   invoices: Receipt,
   payments: Wallet,
   expenses: ScrollText,
+  tracking: Receipt,
   statement: FileText,
 };
 export function CompanySectionNav({

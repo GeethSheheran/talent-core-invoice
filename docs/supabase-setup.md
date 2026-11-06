@@ -48,3 +48,34 @@ signature and grants, reload the API schema with `notify pgrst, 'reload schema';
 Replace the invalid server secret with one for this same project and rerun
 `npm run check:supabase`. Do not rerun initial setup, reset the database, or attach
 expenses through browser-side balance calculations.
+
+## Services catalogue upgrade (November 2026)
+
+The complete, generated SQL is [supabase/services-upgrade.sql](../supabase/services-upgrade.sql).
+In the configured project (`vhqtksslpdencpczfhgk`), back up the database, then
+run the **entire file** as `postgres` in SQL Editor. It requires the three core
+migrations and includes the remaining expense, attachment, service deletion,
+cheque, hierarchy and discount migrations in order. Schema markers skip already
+installed migrations. The whole upgrade rolls back if a step fails; it inserts
+no workbook or fixture records. Manually partially applied migrations need
+inspection first. Do not run the initial setup again or reset the database.
+
+Regenerate the file with `node --import tsx scripts/prepare-services-upgrade.ts`.
+The integration test applies the upgrade twice over an existing paid invoice,
+checks its balance is preserved, and verifies hierarchy writes and outsider denial.
+SQL Editor does not maintain CLI migration history; reconcile it before a later
+CLI deployment, as described above.
+
+On November 5, read-only probes returned HTTP 401 for the configured server
+secret. Replace `SUPABASE_SECRET_KEY` with a valid server secret for this exact
+project in local/hosting environment settings, restart the app, and run
+`npm run check:supabase`. Never put that secret in a `NEXT_PUBLIC_` variable.
+The connected Supabase account lists a different project, so this upgrade has
+not been applied remotely by the assistant.
+
+The service form includes editable suggestions from `Our Service (2).xlsx`.
+Create a main category, then use **Add sub-service** to add a package beneath it.
+Fixed accounting and incorporation prices are in LKR; HR tier pricing, HRIS
+per-head/lifetime pricing, and unfinalised recruitment percentages remain notes
+requiring an explicit agreed rate. Empty workbook categories stay available as
+main services. Suggestions do not import records or change financial balances.

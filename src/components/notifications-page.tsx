@@ -1,11 +1,12 @@
 import { allRows } from "@/lib/db/repositories/records";
-import { runPendingJobs } from "@/app/(admin)/actions";
+import { renderAdmin } from "@/lib/auth/render-admin";
 import {
   buildActivityFeed,
   type ActivityTarget,
 } from "@/lib/notifications/feed";
 import { NotificationFeed } from "@/components/notification-feed";
 export async function NotificationsPage() {
+  const { user } = await renderAdmin();
   const [
     audits,
     reminders,
@@ -70,27 +71,13 @@ export async function NotificationsPage() {
   }
   return (
     <>
-      <div className="heading">
-        <h1>Notifications</h1>
-      </div>
       <NotificationFeed
+        userId={user.id}
         items={buildActivityFeed(
           { audits, reminders, deliveries, jobs, documents, runs },
           targets,
         )}
       />
-      <details className="activity-operations">
-        <summary>Email processing</summary>
-        <p className="muted">
-          Process queued email and reminder jobs.{" "}
-          {process.env.EMAIL_PROVIDER !== "resend"
-            ? "Email is in test mode; no live delivery is recorded."
-            : "The configured email provider and environment settings control delivery."}
-        </p>
-        <form action={runPendingJobs}>
-          <button className="secondary">Process pending jobs</button>
-        </form>
-      </details>
     </>
   );
 }

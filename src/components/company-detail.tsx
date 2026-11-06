@@ -1,3 +1,4 @@
+import { CompanyTracking } from "@/components/company-tracking";
 import Link from "@/components/navigation-link";
 import { Suspense } from "react";
 import { PageLoading } from "@/components/page-loading";
@@ -105,6 +106,7 @@ async function SectionContent({
       </section>
     );
   }
+  if (section === "tracking") return <CompanyTracking rows={data.rows} />;
   const collection: CompanyCollection = section;
   const rows = data.rows;
   return (
@@ -140,18 +142,18 @@ export async function CompanyDetail({
   const section = companySection(selected);
   return (
     <>
-      <Link className="company-back" href="/companies">
-        <ChevronLeft size={16} aria-hidden="true" />
-        All companies
-      </Link>
       <div className="heading company-heading">
         <div className="company-title">
-          <div>
-            <div className="eyebrow">Company workspace · {company.code}</div>
-            <h1>{company.name}</h1>
-            <StatusBadge state={company.archived ? "archived" : "active"} />
-          </div>
+          <Link
+            className="company-back-icon"
+            href="/companies"
+            aria-label="All companies"
+          >
+            <ChevronLeft size={24} />
+          </Link>
+          <h1>{company.name}</h1>
         </div>
+        <StatusBadge state={company.archived ? "archived" : "active"} />
       </div>
       <div className="company-workspace">
         <aside className="company-sidebar">

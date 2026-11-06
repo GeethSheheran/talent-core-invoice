@@ -1,28 +1,10 @@
-import { Suspense } from "react";
 import Link from "@/components/navigation-link";
-import { NotificationPreview } from "@/components/notification-preview";
-import { loadNotificationPreview } from "@/lib/notifications/preview";
 import { NewMenu } from "@/components/new-menu";
-import { BillingChart } from "@/components/billing-chart";
+import { DashboardOverview } from "@/components/dashboard-overview";
 import { allRows, balances } from "@/lib/db/repositories/records";
-import { formatMoney, currencies } from "@/lib/billing/money";
+import { currencies } from "@/lib/billing/money";
 import { metrics, type MetricInvoice } from "@/lib/dashboard/metrics";
 import { colomboDate } from "@/lib/utils/dates";
-import { RecordsTable } from "@/components/records-table";
-async function DashboardNotifications({
-  preview,
-}: {
-  preview: ReturnType<typeof loadNotificationPreview>;
-}) {
-  const result = await preview;
-  return result.error ? (
-    <p className="error" role="alert">
-      {result.error}
-    </p>
-  ) : (
-    <NotificationPreview items={result.items.slice(0, 5)} />
-  );
-}
 export default async function Dashboard({
   searchParams,
 }: {
@@ -34,11 +16,11 @@ export default async function Dashboard({
   )
     ? query.currency!
     : "LKR";
-  const notificationPreview = loadNotificationPreview();
-  const [allInvoices, allPayments, companies] = await Promise.all([
+  const [allInvoices, allPayments, companies, proposals] = await Promise.all([
     balances(),
     allRows("payments"),
     allRows("companies"),
+    allRows("proposals"),
   ]);
   const invoices = allInvoices;
   const payments = allPayments;
@@ -91,9 +73,7 @@ export default async function Dashboard({
     <>
       <div className="heading">
         <div>
-          {/* <div className="eyebrow">Your business at a glance</div> */}
           <h1>Overview</h1>
-          {/* <p>A clear view of your billing, payments, and what’s next.</p> */}
         </div>
         <div className="actions">
           {availableCurrencies.length > 1 && (
@@ -112,82 +92,25 @@ export default async function Dashboard({
           <NewMenu />
         </div>
       </div>
-      <div className="stats">
-        {[
-          [
-            "Collected this month",
-            totals.collected,
-            "Confirmed payments by received date",
-          ],
-          ["Issued this month", totals.issued, "New charges by issue date"],
-          [
-            "Total outstanding",
-            totals.outstanding,
-            "All issued invoices, live balance",
-          ],
-          ["Overdue", totals.overdue, "Open balances past their due date"],
-        ].map(([label, value, note]) => (
-          <div className="stat" key={String(label)}>
-            <div>{label}</div>
-            <div className="value">{formatMoney(Number(value), currency)}</div>
-            <small>{note}</small>
-          </div>
-        ))}
-      </div>
-      <div className="grid dashboard-activity-grid">
-        <section className="card dashboard-billing">
-          <div className="heading">
-            <h2>Billing activity</h2>
-            <span className="muted">Last 6 months · {currency}</span>
-          </div>
-          <BillingChart months={months} currency={currency} />
-          <p className="chart-legend">
-            <span>Issued charges</span>
-            <span>Confirmed collections</span>
-          </p>
-        </section>
-        <section className="card dashboard-notifications">
-          <div className="heading">
-            <h2>Latest notifications</h2>
-            <Link className="view-all-link" href="/notifications">
-              View all →
-            </Link>
-          </div>
-          <Suspense
-            fallback={
-              <p className="loading-caption" role="status">
-                <span className="loading-spinner" aria-hidden="true" />
-                Loading notifications…
-              </p>
-            }
-          >
-            <DashboardNotifications preview={notificationPreview} />
-          </Suspense>
-        </section>
-      </div>
-      <section className="card">
-        <div className="heading">
-          <h2>Recent invoices</h2>
-          <Link className="view-all-link" href="/invoices">
-            View all →
-          </Link>
-        </div>
-        <RecordsTable
-          collection="invoices"
-          rows={invoices
-            .filter((i) => i.currency === currency)
-            .sort((a, b) =>
-              String(b.created_at).localeCompare(String(a.created_at)),
-            )
-            .slice(0, 5)}
-          companies={Object.fromEntries(companies.map((c) => [c.id, c.name]))}
-        />
-      </section>
-      <p className="muted" style={{ fontSize: 11 }}>
-        Billing figures, not audited accrual revenue. Currencies stay separate.
-        Earlier-balance references never add to charges. Credits and reversals
-        affect live outstanding; issued charges show original billing.
-      </p>
+      <DashboardOverview
+        currency={currency}
+        today={today}
+        totals={totals}
+        months={months}
+        invoices={invoices.map((i) => ({
+          id: i.id!,
+          company_id: i.company_id!,
+          number: i.number,
+          state: i.state!,
+          currency: i.currency!,
+          total: i.total || 0,
+          outstanding: i.outstanding || 0,
+          due_date: i.due_date!,
+        }))}
+        payments={payments}
+        proposals={proposals}
+        companies={Object.fromEntries(companies.map((c) => [c.id, c.name]))}
+      />
     </>
   );
 }

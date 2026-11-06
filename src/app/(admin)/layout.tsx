@@ -1,3 +1,4 @@
+import { LiveBillingRefresh } from "@/components/live-billing-refresh";
 import Link from "@/components/navigation-link";
 import { PanelLeft } from "lucide-react";
 import { redirect } from "next/navigation";
@@ -13,13 +14,15 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  let userId: string;
   try {
-    await renderAdmin();
+    userId = (await renderAdmin()).user.id;
   } catch {
     redirect("/login");
   }
   return (
     <div className="shell">
+      <LiveBillingRefresh />
       <a className="skip-link button" href="#main-content">
         Skip to content
       </a>
@@ -33,7 +36,7 @@ export default async function AdminLayout({
           </Link>
           <div className="workspace-tools">
             <span>Administrator</span>
-            <NotificationMenu />
+            <NotificationMenu userId={userId} />
             <SettingsMenu />
           </div>
         </header>

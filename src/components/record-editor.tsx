@@ -1,5 +1,10 @@
 "use client";
+import { Trash2, ChevronDown } from "lucide-react";
 import { useActionState, useState } from "react";
+import {
+  ServiceSuggestions,
+  type ServiceSuggestion,
+} from "@/components/service-suggestions";
 import { DiscountInput } from "@/components/discount-input";
 import { ProposalSource } from "@/components/proposal-source";
 import { saveRecord } from "@/app/(admin)/actions";
@@ -61,7 +66,7 @@ const fields: Record<RecordKind, Field[]> = {
       options: ["monthly", "one-time"],
       value: "monthly",
     },
-    { key: "rate", label: "Default rate", type: "money" },
+    { key: "rate", label: "Default rate", type: "money", required: true },
 
     ...common,
   ],
@@ -301,6 +306,9 @@ export function RecordEditor({
     ),
   );
   const [companyId, setCompanyId] = useState(String(initial.company_id || ""));
+  const [serviceSuggestion, setServiceSuggestion] =
+    useState<ServiceSuggestion | null>(null);
+  const [suggestionVersion, setSuggestionVersion] = useState(0);
   const [parentId, setParentId] = useState(String(initial.parent_id || ""));
   const [currency, setCurrency] = useState(String(initial.currency || "LKR"));
   const [projectId, setProjectId] = useState(String(initial.project_id || ""));
@@ -319,6 +327,9 @@ export function RecordEditor({
   const [packageDiscountType, setPackageDiscountType] = useState<
     "amount" | "percentage"
   >(initial.discount_type === "percentage" ? "percentage" : "amount");
+  const [discountEnabled, setDiscountEnabled] = useState(
+    Number(initial.discount_value || initial.discount || 0) > 0,
+  );
   const visibleFields = fields[kind].filter(
     (f) =>
       !(
@@ -433,7 +444,9 @@ export function RecordEditor({
       }
       if (kind === "service") {
         data.parent_id = parentId || null;
-        data.archived = Boolean(initial.archived);
+        data.archived = f.has("service_status")
+          ? f.get("service_status") === "archived"
+          : Boolean(initial.archived);
         data.billing_type = String(f.get("billing_type") || "monthly");
       }
       if (kind === "project") {
@@ -490,6 +503,15 @@ export function RecordEditor({
         className="card"
         hidden={inlineReview && review}
       >
+        {kind === "service" && !id && currency === "LKR" && (
+          <ServiceSuggestions
+            hasParent={Boolean(parentId)}
+            onApply={(value) => {
+              setServiceSuggestion(value);
+              setSuggestionVersion((v) => v + 1);
+            }}
+          />
+        )}
         <div
           className={
             kind === "service"
@@ -500,7 +522,10 @@ export function RecordEditor({
           }
         >
           {needsCompany && (
-            <div className="field field-company">
+            <div
+              className="field field-company"
+              hidden={kind === "project" && lockCompany}
+            >
               <label htmlFor="company_id">Company</label>
               <select
                 id="company_id"
@@ -590,6 +615,19 @@ export function RecordEditor({
               </select>
             </div>
           )}
+          {kind === "service" && (
+            <div className="field service-status-field">
+              <label htmlFor="service_status">Service status</label>
+              <select
+                id="service_status"
+                name="service_status"
+                defaultValue={initial.archived ? "archived" : "active"}
+              >
+                <option value="active">Active</option>
+                <option value="archived">Inactive</option>
+              </select>
+            </div>
+          )}
           {kind === "payment" && initial.invoice_total != null && (
             <div className="field field-invoice-total">
               <label htmlFor="invoice_total">Full invoice amount</label>
@@ -601,7 +639,58 @@ export function RecordEditor({
             </div>
           )}
           {visibleFields.map((field) => {
-            const raw = initial[field.key];
+            if (
+              kind === "project" &&
+              ["scope", "currency", "state"].includes(field.key)
+            )
+              return (
+                <input
+                  key={field.key}
+                  type="hidden"
+                  name={field.key}
+                  value={
+                    field.key === "currency"
+                      ? currency
+                      : String(
+                          initial[field.key] ||
+                            (field.key === "state" ? "active" : ""),
+                        )
+                  }
+                />
+              );
+            if (kind === "expense" && field.key === "currency") return null;
+            if (kind === "expense" && field.key === "amount")
+              return (
+                <div className="field" key="amount">
+                  <label htmlFor="amount">Expense amount</label>
+                  <div className="service-money-control">
+                    <select
+                      name="currency"
+                      aria-label="Currency"
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                    >
+                      {currencies.map((c) => (
+                        <option key={c}>{c}</option>
+                      ))}
+                    </select>
+                    <input
+                      id="amount"
+                      name="amount"
+                      inputMode="decimal"
+                      required
+                      defaultValue={major(Number(initial.amount || 0))}
+                    />
+                  </div>
+                </div>
+              );
+
+            const raw =
+              kind === "service" &&
+              serviceSuggestion &&
+              field.key in serviceSuggestion
+                ? serviceSuggestion[field.key as keyof ServiceSuggestion]
+                : initial[field.key];
             const value =
               raw == null
                 ? field.value ||
@@ -618,6 +707,45 @@ export function RecordEditor({
                   : field.type === "month"
                     ? String(raw).slice(0, 7)
                     : String(raw);
+            if (kind === "service" && field.key === "currency") return null;
+            if (kind === "service" && field.key === "rate")
+              return (
+                <div
+                  className="field field-rate"
+                  key={`rate-${suggestionVersion}`}
+                >
+                  <label htmlFor="rate">Default rate</label>
+                  <div className="service-money-control">
+                    <select
+                      id="currency"
+                      name="currency"
+                      aria-label="Currency"
+                      value={currency}
+                      onChange={(e) => {
+                        setCurrency(e.target.value);
+                        setParentId("");
+                        setServiceSuggestion((previous) =>
+                          previous ? { ...previous, rate: null } : null,
+                        );
+                        setSuggestionVersion((v) => v + 1);
+                      }}
+                    >
+                      {fields.service
+                        .find((f) => f.key === "currency")
+                        ?.options?.map((o) => (
+                          <option key={o}>{o}</option>
+                        ))}
+                    </select>
+                    <input
+                      id="rate"
+                      name="rate"
+                      inputMode="decimal"
+                      defaultValue={value || ""}
+                      required
+                    />
+                  </div>
+                </div>
+              );
             return (
               <div
                 className={
@@ -626,7 +754,7 @@ export function RecordEditor({
                   " " +
                   (field.type === "textarea" ? "span-2" : "")
                 }
-                key={field.key}
+                key={field.key + (kind === "service" ? suggestionVersion : "")}
               >
                 <label htmlFor={field.key}>{field.label}</label>
                 {field.options ? (
@@ -643,7 +771,12 @@ export function RecordEditor({
                       field.key === "currency" &&
                       (setCurrency(e.target.value),
                       setProjectId(""),
-                      kind === "service" && setParentId(""),
+                      kind === "service" &&
+                        (setParentId(""),
+                        setServiceSuggestion((previous) =>
+                          previous ? { ...previous, rate: null } : null,
+                        ),
+                        setSuggestionVersion((v) => v + 1)),
                       kind === "invoice" &&
                         !id &&
                         setLines(companyLines(companyId, e.target.value)))
@@ -696,7 +829,9 @@ export function RecordEditor({
                       (field.type === "month"
                         ? today.slice(0, 7)
                         : field.type === "money"
-                          ? "0"
+                          ? kind === "service" && field.key === "rate"
+                            ? ""
+                            : "0"
                           : "")
                     }
                     required={
@@ -737,58 +872,65 @@ export function RecordEditor({
         {kind === "project" && (
           <section>
             <h2>Services agreed with this company</h2>
-            <p className="muted">
-              Choose a main service or a sub-service on its own. Selecting a
-              main service does not add its sub-services. Set the agreed rate
-              and billing frequency. Monthly services create a draft each month.
-              One-time services are included once. Changes apply to new drafts.
-            </p>
-            <select
-              aria-label="Add agreed service"
-              value=""
-              onChange={(e) => {
-                const service = services.find((s) => s.id === e.target.value);
-                if (service)
-                  setPackageItems([
-                    ...packageItems,
-                    {
-                      service_id: service.id,
-                      ui_key: crypto.randomUUID(),
-                      name: service.name,
-                      description: service.description,
-                      quantity: "1",
-                      rate: service.rate,
-                      discount: 0,
-                      billing_type:
-                        service.billing_type === "one-time"
-                          ? "one-time"
-                          : "monthly",
-                    },
-                  ]);
-              }}
-            >
-              <option value="">+ Choose a catalogue service</option>
-              <optgroup label="Main services">
+            <details className="service-multiselect">
+              <summary>
+                Choose services <span>{packageItems.length} selected</span>
+                <ChevronDown size={16} />
+              </summary>
+              <div className="service-multiselect-options">
                 {services
-                  .filter((s) => s.currency === currency && !s.parent_id)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
+                  .filter((service) => service.currency === currency)
+                  .map((service) => (
+                    <label key={service.id}>
+                      <input
+                        type="checkbox"
+                        aria-label={service.name}
+                        checked={packageItems.some(
+                          (item) => item.service_id === service.id,
+                        )}
+                        onChange={(e) => {
+                          if (!e.target.checked)
+                            setPackageItems(
+                              packageItems.filter(
+                                (item) => item.service_id !== service.id,
+                              ),
+                            );
+                          else
+                            setPackageItems([
+                              ...packageItems,
+                              {
+                                service_id: service.id,
+                                ui_key: crypto.randomUUID(),
+                                name: service.name,
+                                description: service.description,
+                                quantity: "1",
+                                rate: service.rate,
+                                discount: 0,
+                                billing_type:
+                                  service.billing_type === "one-time"
+                                    ? "one-time"
+                                    : "monthly",
+                              },
+                            ]);
+                        }}
+                      />
+                      <span>
+                        {service.parent_id && (
+                          <small>
+                            {
+                              services.find(
+                                (parent) => parent.id === service.parent_id,
+                              )?.name
+                            }{" "}
+                            /{" "}
+                          </small>
+                        )}
+                        {service.name}
+                      </span>
+                    </label>
                   ))}
-              </optgroup>
-              <optgroup label="Sub-services only">
-                {services
-                  .filter((s) => s.currency === currency && s.parent_id)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {services.find((parent) => parent.id === s.parent_id)
-                        ?.name || "Main service"}{" "}
-                      / {s.name}
-                    </option>
-                  ))}
-              </optgroup>
-            </select>
+              </div>
+            </details>
             {!packageItems.length && (
               <p className="notice">
                 Add a service above. Create new services in the Services
@@ -837,15 +979,26 @@ export function RecordEditor({
                     </label>
                     <label>
                       Agreed rate
-                      <input
-                        aria-label={`Agreed rate ${index + 1}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        required
-                        defaultValue={major(item.rate)}
-                        onChange={(e) => amountChange(e, "rate")}
-                      />
+                      <span className="service-money-control">
+                        <select
+                          aria-label={`Rate currency ${index + 1}`}
+                          value={currency}
+                          onChange={(e) => setCurrency(e.target.value)}
+                        >
+                          {currencies.map((c) => (
+                            <option key={c}>{c}</option>
+                          ))}
+                        </select>
+                        <input
+                          aria-label={`Agreed rate ${index + 1}`}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          required
+                          defaultValue={major(item.rate)}
+                          onChange={(e) => amountChange(e, "rate")}
+                        />
+                      </span>
                     </label>
                   </div>
                   <div className="service-discount-frequency">
@@ -876,27 +1029,40 @@ export function RecordEditor({
                   </div>
                   <button
                     type="button"
-                    className="secondary"
+                    className="secondary remove-service-button"
                     onClick={() =>
                       setPackageItems(
                         packageItems.filter((_, n) => n !== index),
                       )
                     }
                   >
-                    Remove {item.name}
+                    <Trash2 size={16} /> Remove {item.name}
                   </button>
                 </fieldset>
               );
             })}
-            <DiscountInput
-              label="Full-service discount"
-              type={packageDiscountType}
-              value={packageDiscount}
-              onChange={(type, value) => {
-                setPackageDiscountType(type);
-                setPackageDiscount(value);
+            <button
+              type="button"
+              className="secondary"
+              aria-pressed={discountEnabled}
+              onClick={() => {
+                setDiscountEnabled(!discountEnabled);
+                setPackageDiscount(0);
               }}
-            />
+            >
+              Full-service discount {discountEnabled ? "−" : "+"}
+            </button>
+            {discountEnabled && (
+              <DiscountInput
+                label="Full-service discount"
+                type={packageDiscountType}
+                value={packageDiscount}
+                onChange={(type, value) => {
+                  setPackageDiscountType(type);
+                  setPackageDiscount(value);
+                }}
+              />
+            )}
             <p className="muted">
               The full-service discount is shared proportionally across services
               after each line discount. Only the monthly share repeats.
@@ -1281,28 +1447,18 @@ export function RecordEditor({
                 </>
               )}
               {kind === "service" && (
-                <div className="field service-parent-field">
-                  <label htmlFor="parent_id">Main service</label>
-                  <select
-                    id="parent_id"
-                    value={parentId}
-                    onChange={(e) => setParentId(e.target.value)}
-                  >
-                    <option value="">This is a main service</option>
-                    {services
-                      .filter(
-                        (s) =>
-                          !s.parent_id &&
-                          s.id !== id &&
-                          s.currency === currency,
-                      )
-                      .map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
+                <>
+                  <dt>Status</dt>
+                  <dd>
+                    {JSON.parse(payload).archived ? "Inactive" : "Active"}
+                  </dd>
+                  <dt>Main service</dt>
+                  <dd>
+                    {services.find(
+                      (s) => s.id === JSON.parse(payload).parent_id,
+                    )?.name || "This is a main service"}
+                  </dd>
+                </>
               )}
               {visibleFields.map((field) => {
                 const value = JSON.parse(payload)[field.key];

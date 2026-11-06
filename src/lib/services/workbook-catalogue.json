@@ -1,0 +1,498 @@
+[
+  {
+    "name": "HR Service",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": [
+      {
+        "name": "Payroll",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Attendance Records",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Leave Management",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "ETF",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "EPF / EPF",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "PAYE Tax Filing",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Coordination with Labour department & Central Bank for Payroll Matters",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Payslips",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Recruitment",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Personal File Management (Appointment letters and other  HR related Letters )",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "All Matters of Labour department",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Performance Management",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Training & Development",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Employee Relations",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Grievance Handling",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Disciplinary Management",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "HR policy & Process Development",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Insurance Benefit Coordination",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Employee welfare benefit Management",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Engagement Activities Organizing and Coordination",
+        "description": "Price to agree. Included service from HR Service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Startup package",
+        "description": "Price to agree. • Payroll\n• Attendnace Records\n• Leave Management\n• ETF\n• EPF / EPF\n• Payee  Tax Filling\n• Coordination with Labour department & Central Bank for Payroll Matters\n• Payslips\n\nWorkbook pricing (LKR):\n1-5 company: 3500.0\n6-10 company: 6500.0\n11-20 company: 12000.0\n21 - 30 company: 16500.0\n30 Plus: 500.0\nConfirm the company bands and 30 Plus basis before setting a rate.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Gold package",
+        "description": "Price to agree. • Payroll\n• Attendnace Records\n• Leave Management\n• ETF\n• EPF / EPF\n• Payee  Tax Filling\n• Payslips\n• Coordination with Labour department & Central Bank for Payroll Matters\n• Recruitment\n• Personal File Management (Appointment letters and other  HR related Letters )\n\nWorkbook pricing (LKR):\n1-5 company: 4500.0\n6-10 company: 8500.0\n11-20 company: 16000.0\n21 - 30 company: 22500.0\n30 Plus: 700.0\nConfirm the company bands and 30 Plus basis before setting a rate.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Premium package",
+        "description": "Price to agree. • Payroll\n• Attendnace Records\n• Leave Management\n• ETF\n• EPF / EPF\n• Payslips\n• Payee  Tax Filling\n• Personal File Management (Appointment letters and other  HR related Letters )\n• Recruitment\n• All Matters of Labour department\n• Performance Management\n• Traning & Development\n• Employee Relations\n• Grivances Handling\n• Diciplinary Management\n• HR policy & Process Development\n• Insurance Benefit cooridnation\n• Employee welfare benefit Management\n• Engagment activites organizing and coordination\n\nWorkbook pricing (LKR):\n1-5 company: 6000.0\n6-10 company: 11500.0\n11-20 company: 22000.0\n21 - 30 company: 31500.0\n30 Plus: 1000.0\nConfirm the company bands and 30 Plus basis before setting a rate.",
+        "rate": null,
+        "billing_type": "monthly"
+      }
+    ]
+  },
+  {
+    "name": "Account service",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": [
+      {
+        "name": "Online Bookkeeping",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly Profit or Loss Report",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly Balance Sheet",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly Cash Flow Management",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly Ledger",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Estimated Tax Return (CIT)",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Quarterly CIT Payments",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Final Tax Return (CIT)",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly APIT Handling",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "T10/APIT Certificates",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly WHT Handling",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "WHT Certificates",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly VAT Handling",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly SSCL Handling",
+        "description": "Price to agree. Included service from Account service.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Basic package",
+        "description": "• Online Bookkeeping\n• Monthly Profit or Loss Report\n• Monthly Balance Sheet\n• Monthly Cash Flow Management\n• Monthly Ledger\n• Estimated Tax Return (CIT)\n• Quarterly CIT Payments\n• Final Tax Return (CIT)\n\nWorkbook transaction band: >100 — confirm this threshold with the client.",
+        "rate": 3000000,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Standard package",
+        "description": "• Online Bookkeeping\n• Monthly Profit or Loss Report\n• Monthly Balance Sheet\n• Monthly Cash Flow Management\n• Monthly Ledger\n• Estimated Tax Return (CIT)\n• Quarterly CIT Payments\n• Final Tax Return (CIT)\n• Monthly APIT Handling\n• T10/APIT Certificates\n• Monthly WHT Handling\n• WHT Certificates\n\nWorkbook transaction band: >400 — confirm this threshold with the client.",
+        "rate": 4500000,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Premium package",
+        "description": "• Online Bookkeeping\n• Monthly Profit or Loss Report\n• Monthly Balance Sheet\n• Monthly Cash Flow Management\n• Monthly Ledger\n• Estimated Tax Return (CIT)\n• Quarterly CIT Payments\n• Final Tax Return (CIT)\n• Monthly APIT Handling\n• T10/APIT Certificates\n• Monthly WHT Handling\n• WHT Certificates\n• Monthly VAT Handling\n• Monthly SSCL Handling\n\nWorkbook transaction band: 400 < — confirm this threshold with the client.",
+        "rate": 6000000,
+        "billing_type": "monthly"
+      }
+    ]
+  },
+  {
+    "name": "Corporate Service",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": [
+      {
+        "name": "Business Incorporation",
+        "description": "Price to agree. ",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Business Name Registration",
+        "description": "Price to agree. ",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "VAT Registration",
+        "description": "Price to agree. ",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "TAX Registration",
+        "description": "Price to agree. ",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "EPF/ETF Registration",
+        "description": "Price to agree. ",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Secretary Service",
+        "description": "Price to agree. ",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Business Incorporation — Basic",
+        "description": "• Company Incorporation Advice\n• Name Approval\n• Articles of Association\n• Form 01\n• Form 18\n• Form 19\n• BO Application Submitting\n• Incorporation Certificate (BR)\n• Certified Form 1",
+        "rate": 4050000,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Business Incorporation — Standard",
+        "description": "• Company Incorporation Advice\n• Name Approval\n• Articles of Association\n• Form 01\n• Form 18\n• Form 19\n• Incorporation Certificate (BR)\n• Certified Form 1\n• Certified Articles Of Association\n• BO Application Submitting\n• Board Resolution for Corporate Bank Account\n• Director Seal\n• Free Consultation\n• Free Tax Registration\n• Free 6 Month secretary Service",
+        "rate": 5050000,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Business Incorporation — Premium",
+        "description": "• Company Incorporation Advice\n• Name Approval\n• Articles of Association\n• Form 01\n• Form 18\n• Form 19\n• Incorporation Certificate (BR)\n• Certified Form 1\n• Certified Articles Of Association\n• BO Application Submitting\n• Board Resolution for Corporate Bank Account\n• Director Seal\n• Company Seal\n• Embossed seal\n• Free Consultation\n• Free Tax Registration\n• Free Year secretary Service",
+        "rate": 6550000,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "Digital Marketing",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": [
+      {
+        "name": "Social Media Handling",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Web Development",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "AI Video Creation",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Commercial AD Creation",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "System Implementation",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": [
+      {
+        "name": "Talentcore HR - HRIS",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "POS System",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Finger Machine Integration",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Service Management System - Ledger.",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Production Flow Management System",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Customized management tool design",
+        "description": "Price to agree. Confirm price and payment frequency before saving.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "Strategic Proposal Writing",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": []
+  },
+  {
+    "name": "Certification  Award",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": []
+  },
+  {
+    "name": "HRIS System",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": [
+      {
+        "name": "Employee Management",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Attendance Management",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Leave Management",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Payroll Management",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Loan Management",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Performance Management",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Event Management",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "EPF / ETF / Pay slips / Paysheets",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Employee Portal",
+        "description": "Price to agree. Included service from HRIS System.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Monthly plan",
+        "description": "Price to agree. • Employee Management\n• Attendance Management\n• Leave Management\n• Payroll Management\n• Loan Management\n• Performance Management\n• Event Management\n• EPF / ETF / Pay slips / Paysheets\n• Employee Portal\n\nWorkbook pricing: 300.0 per head; confirm quantity before billing.",
+        "rate": null,
+        "billing_type": "monthly"
+      },
+      {
+        "name": "Life Time plan",
+        "description": "Price to agree. • Employee Management\n• Attendance Management\n• Leave Management\n• Payroll Management\n• Loan Management\n• Performance Management\n• Event Management\n• EPF / ETF / Pay slips / Paysheets\n• Employee Portal\n\nWorkbook pricing: One Time Payment - Rs.300,000.00\nAnnual Maintenance Cost - Rs. 25,000.00\nConfirm maintenance billing separately.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  },
+  {
+    "name": "Recruitment",
+    "description": "Main service category from Our Service (2).xlsx.",
+    "children": [
+      {
+        "name": "Labour",
+        "description": "Price to agree. Draft workbook rate: 30%. Price list is not finalised; confirm the salary basis and fee before billing.\nIf our representative is required to participate in interviews at the client’s premises, a charge of Rs. 3,800 per day will apply.\nTransport costs will be reimbursed and included in the final invoice.\nIf a recruited employee resigns within Three month of joining, we will arrange a replacement interview at no additional consulting fee.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Non Executives",
+        "description": "Price to agree. Draft workbook rate: 50%. Price list is not finalised; confirm the salary basis and fee before billing.\nIf our representative is required to participate in interviews at the client’s premises, a charge of Rs. 3,800 per day will apply.\nTransport costs will be reimbursed and included in the final invoice.\nIf a recruited employee resigns within Three month of joining, we will arrange a replacement interview at no additional consulting fee.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Executives",
+        "description": "Price to agree. Draft workbook rate: 65%. Price list is not finalised; confirm the salary basis and fee before billing.\nIf our representative is required to participate in interviews at the client’s premises, a charge of Rs. 3,800 per day will apply.\nTransport costs will be reimbursed and included in the final invoice.\nIf a recruited employee resigns within Three month of joining, we will arrange a replacement interview at no additional consulting fee.",
+        "rate": null,
+        "billing_type": "one-time"
+      },
+      {
+        "name": "Manager & Above",
+        "description": "Price to agree. Draft workbook rate: 80%. Price list is not finalised; confirm the salary basis and fee before billing.\nIf our representative is required to participate in interviews at the client’s premises, a charge of Rs. 3,800 per day will apply.\nTransport costs will be reimbursed and included in the final invoice.\nIf a recruited employee resigns within Three month of joining, we will arrange a replacement interview at no additional consulting fee.",
+        "rate": null,
+        "billing_type": "one-time"
+      }
+    ]
+  }
+]

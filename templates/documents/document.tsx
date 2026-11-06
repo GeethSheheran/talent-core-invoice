@@ -1,9 +1,10 @@
 /* eslint-disable @next/next/no-img-element -- Embedded original assets must work identically in browser and offline PDF rendering. */
+import { InvoiceDocument } from "./invoice-document";
 import type { Snapshot } from "@/lib/documents/snapshots";
 import { formatMoney } from "@/lib/billing/money";
 export function Document({ snapshot: s }: { snapshot: Snapshot }) {
+  if (s.invoice) return <InvoiceDocument snapshot={s} />;
   const currency =
-    s.invoice?.currency ||
     s.payment?.currency ||
     s.proposal?.currency ||
     s.statement?.currency ||
@@ -11,7 +12,7 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
   const money = (v: number) => formatMoney(v, currency);
   return (
     <article
-      className="document"
+      className={`document ${s.payment ? "receipt-document" : ""}`}
       style={{
         color: s.brand.ink,
         fontFamily: s.brand.fontData
@@ -39,17 +40,11 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
             {s.kind === "receipt" ? "Payment receipt" : s.kind}
           </div>
           <h1 style={{ color: s.brand.primary }}>
-            {s.invoice?.number ||
-              s.payment?.receipt_number ||
+            {s.payment?.receipt_number ||
               s.proposal?.number ||
               (s.kind === "statement" ? "Statement" : "DRAFT")}
           </h1>
-          <p>
-            {s.invoice?.issued_at?.slice(0, 10) ||
-              s.payment?.received_on ||
-              s.statement?.as_of ||
-              ""}
-          </p>
+          <p>{s.payment?.received_on || s.statement?.as_of || ""}</p>
         </div>
       </header>
       <section>
@@ -63,115 +58,11 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
           {s.company.email}
         </p>
       </section>
-      {s.invoice && (
-        <>
-          <section>
-            <p>
-              <strong>Due date:</strong> {s.invoice.due_date} ·{" "}
-              <strong>Currency:</strong> {currency}
-              {s.invoice.period && (
-                <>
-                  {" "}
-                  · <strong>Period:</strong> {s.invoice.period.slice(0, 7)}
-                </>
-              )}
-            </p>
-            <table>
-              <thead>
-                <tr>
-                  <th style={{ width: "48%" }}>Description</th>
-                  <th>Qty</th>
-                  <th>Rate</th>
-                  <th>Discount</th>
-                  <th>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {s.items?.map((item, i) => (
-                  <tr key={i}>
-                    <td>{item.description}</td>
-                    <td>{item.quantity}</td>
-                    <td>{money(item.rate)}</td>
-                    <td>{money(item.discount || 0)}</td>
-                    <td>{money(item.amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="summary">
-              <p>
-                <span>Subtotal after service discounts</span>
-                {money(s.invoice.subtotal)}
-              </p>
-              <p>
-                <span>Discount</span>
-                {money(s.invoice.discount)}
-              </p>
-              <p>
-                <span>Tax</span>
-                {money(s.invoice.tax)}
-              </p>
-              <p className="grand">
-                <span>New charges</span>
-                {money(s.invoice.total)}
-              </p>
-              <p>
-                <span>Credit applied from previous overpayment</span>
-                {money(s.invoice.credit_applied || 0)}
-              </p>
-              <p>
-                <span>Current invoice balance at issue</span>
-                {money(
-                  s.invoice.balance_at_issue != null
-                    ? s.invoice.balance_at_issue
-                    : s.invoice.total - (s.invoice.credit_applied || 0),
-                )}
-              </p>
-            </div>
-          </section>
-          {Boolean(s.references?.length) && (
-            <section>
-              <h3>Earlier outstanding balances</h3>
-              <p>
-                Previous balances are listed for reference and should not be
-                counted twice. They remain payable against their original
-                invoices.
-              </p>
-              <table>
-                <tbody>
-                  {s.references?.map((r) => (
-                    <tr key={r.number}>
-                      <td>{r.number}</td>
-                      <td>{money(r.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-          )}
-          <section className="commercial">
-            <strong>
-              Combined amount requested at issue:{" "}
-              {money(
-                (s.invoice.balance_at_issue != null
-                  ? s.invoice.balance_at_issue
-                  : s.invoice.total - (s.invoice.credit_applied || 0)) +
-                  (s.references || []).reduce((sum, r) => sum + r.amount, 0),
-              )}
-            </strong>
-          </section>
-          <section className="payment-details">
-            <h3>Payment details</h3>
-            <p>{s.business.bank_details}</p>
-            <p>{s.invoice.notes || s.business.notes}</p>
-          </section>
-        </>
-      )}
       {s.payment && (
         <>
-          <h2>Payment received</h2>
+          <h2>{s.payment.receipt_number ? "Payment received" : "Draft receipt · not confirmed"}</h2>
           <p>
-            <strong>{money(s.payment.amount)}</strong> received on{" "}
+            <strong>{money(s.payment.amount)}</strong> {s.payment.receipt_number ? "received on" : "pending confirmation for"}{" "}
             {s.payment.received_on} by {s.payment.method}.
           </p>
           <p>Reference: {s.payment.reference || "—"}</p>
@@ -195,7 +86,7 @@ export function Document({ snapshot: s }: { snapshot: Snapshot }) {
           </table>
           <p>Unallocated company credit: {money(s.unallocated || 0)}</p>
           <p>
-            This receipt acknowledges the payment above. It does not certify
+            {s.payment.receipt_number ? "This receipt acknowledges the payment above." : "This draft does not acknowledge receipt of payment."} It does not certify
             full settlement of the company account. Later allocations and
             reversals appear on the current statement.
           </p>

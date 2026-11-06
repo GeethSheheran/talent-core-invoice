@@ -26,6 +26,8 @@ export function recordLoadMessage(error: unknown) {
     error instanceof RecordLoadError &&
     ["PGRST205", "42P01", "42703"].includes(error.code)
   ) {
+    if (error.table === "service_catalogue")
+      return "Services needs the catalogue database upgrade. Apply supabase/services-upgrade.sql in this project’s SQL Editor, then retry. Existing services are preserved.";
     return "This section needs a database update. Apply the pending database migrations (expenses, recurring schedules, and agreed services) to the configured Supabase project, then retry. Existing records are preserved.";
   }
   return "This section could not be loaded. Check the database connection and access permissions, then retry. Existing records are preserved.";

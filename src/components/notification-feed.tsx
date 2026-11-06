@@ -1,8 +1,12 @@
 "use client";
+import { NotificationRecord } from "@/components/notification-record";
 import Link from "@/components/navigation-link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, FileText, Mail, Activity, X, ArrowUpRight } from "lucide-react";
-import { ListControls } from "@/components/list-controls";
+import { Search, X, ArrowUpRight } from "lucide-react";
+import {
+  activityIcon,
+  useNotificationRead,
+} from "@/components/notification-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { ActivityItem } from "@/lib/notifications/feed";
 function dateLabel(date: string) {
@@ -23,10 +27,16 @@ const categories = [
   ["documents", "Documents"],
   ["system", "System"],
 ] as const;
-export function NotificationFeed({ items }: { items: ActivityItem[] }) {
+export function NotificationFeed({
+  items,
+  userId = "workspace",
+}: {
+  items: ActivityItem[];
+  userId?: string;
+}) {
+  const { read, markRead } = useNotificationRead(userId);
   const [category, setCategory] = useState("all");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<ActivityItem | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -37,43 +47,34 @@ export function NotificationFeed({ items }: { items: ActivityItem[] }) {
   const filtered = items.filter(
     (item) =>
       (category === "all" || item.category === category) &&
-      (!status || item.status === status) &&
       [item.title, item.message, item.company, item.record]
         .join(" ")
         .toLowerCase()
         .includes(query.trim().toLowerCase()),
   );
   const pages = Math.max(1, Math.ceil(filtered.length / 20));
-  const states = [...new Set(items.map((item) => item.status))].sort();
   return (
     <>
-      <section className="card list-card">
-        <div className="list-heading">
-          <h2>Workspace activity</h2>
-          <div className="list-heading-tools">
-            <ListControls
-              label="notifications"
-              query={query}
-              onQuery={(value) => {
-                setQuery(value);
-                setPage(1);
-              }}
-              status={status}
-              onStatus={(value) => {
-                setStatus(value);
-                setPage(1);
-              }}
-              options={states.map((value) => ({
-                value,
-                label: value.replaceAll("_", " "),
-              }))}
-            />
-            <span className="badge" role="status">
-              {filtered.length} {filtered.length === 1 ? "update" : "updates"}
-            </span>
-          </div>
-        </div>
-        <nav className="activity-tabs" aria-label="Activity categories">
+      <div className="heading">
+        <h1>Notifications</h1>
+        <label className="notification-search">
+          <Search size={18} />
+          <input
+            aria-label="Search notifications"
+            placeholder="Search notifications…"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPage(1);
+            }}
+          />
+        </label>
+      </div>
+      <div className="notifications-workspace">
+        <nav
+          className="notification-categories"
+          aria-label="Activity categories"
+        >
           {categories.map(([key, label]) => (
             <button
               key={key}
@@ -94,94 +95,97 @@ export function NotificationFeed({ items }: { items: ActivityItem[] }) {
             </button>
           ))}
         </nav>
-        <ul className="activity-list">
-          {filtered.slice((page - 1) * 20, page * 20).map((item) => {
-            const Icon =
-              item.category === "reminders"
-                ? Bell
-                : item.category === "delivery"
-                  ? Mail
-                  : item.category === "documents"
-                    ? FileText
-                    : Activity;
-            return (
-              <li key={item.id}>
+        <section className="card list-card">
+          <ul className="activity-list">
+            {filtered.slice((page - 1) * 20, page * 20).map((item) => {
+              const Icon = activityIcon(item);
+              return (
+                <li key={item.id}>
+                  <button
+                    className={`activity-row ${read.has(item.id) ? "" : "notification-unread"}`}
+                    type="button"
+                    onClick={() => {
+                      markRead(item.id);
+                      setSelected(item);
+                      dialog.current?.showModal();
+                    }}
+                    aria-label={`Open ${item.title}${item.record ? ": " + item.record : ""}`}
+                  >
+                    <span className="activity-icon">
+                      <Icon size={19} aria-hidden="true" />
+                    </span>
+                    <span className="activity-copy">
+                      <strong>
+                        {!read.has(item.id) && (
+                          <span className="unread-dot" aria-label="Unread" />
+                        )}
+                        {item.title}
+                      </strong>
+                      <span>{item.message}</span>
+                      <small>
+                        {[item.company, item.record]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </small>
+                    </span>
+                    <span className="activity-meta">
+                      <StatusBadge state={item.status} />
+                      <time dateTime={item.date}>{dateLabel(item.date)}</time>
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          {!filtered.length && (
+            <div className="empty">
+              <h3>
+                {items.length ? "No matching updates" : "No activity yet"}
+              </h3>
+              <p>
+                {items.length
+                  ? "Try another category, search, or status."
+                  : "Saved changes, document updates, deliveries and reminders will appear here."}
+              </p>
+              {items.length > 0 && (
                 <button
-                  className="activity-row"
-                  type="button"
+                  className="secondary"
                   onClick={() => {
-                    setSelected(item);
-                    dialog.current?.showModal();
+                    setCategory("all");
+                    setQuery("");
+                    setPage(1);
                   }}
-                  aria-label={`Open ${item.title}${item.record ? ": " + item.record : ""}`}
                 >
-                  <span className="activity-icon">
-                    <Icon size={19} aria-hidden="true" />
-                  </span>
-                  <span className="activity-copy">
-                    <strong>{item.title}</strong>
-                    <span>{item.message}</span>
-                    <small>
-                      {[item.company, item.record].filter(Boolean).join(" · ")}
-                    </small>
-                  </span>
-                  <span className="activity-meta">
-                    <StatusBadge state={item.status} />
-                    <time dateTime={item.date}>{dateLabel(item.date)}</time>
-                  </span>
-                  <ArrowUpRight size={16} aria-hidden="true" />
+                  Clear filters
                 </button>
-              </li>
-            );
-          })}
-        </ul>
-        {!filtered.length && (
-          <div className="empty">
-            <h3>{items.length ? "No matching updates" : "No activity yet"}</h3>
-            <p>
-              {items.length
-                ? "Try another category, search, or status."
-                : "Saved changes, document updates, deliveries and reminders will appear here."}
-            </p>
-            {items.length > 0 && (
+              )}
+            </div>
+          )}
+          {pages > 1 && (
+            <nav className="list-pagination" aria-label="Notification pages">
               <button
                 className="secondary"
-                onClick={() => {
-                  setCategory("all");
-                  setQuery("");
-                  setStatus("");
-                  setPage(1);
-                }}
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
               >
-                Clear filters
+                Previous
               </button>
-            )}
-          </div>
-        )}
-        {pages > 1 && (
-          <nav className="list-pagination" aria-label="Notification pages">
-            <button
-              className="secondary"
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </button>
-            <span>
-              Page {page} of {pages}
-            </span>
-            <button
-              className="secondary"
-              disabled={page >= pages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </button>
-          </nav>
-        )}
-      </section>
+              <span>
+                Page {page} of {pages}
+              </span>
+              <button
+                className="secondary"
+                disabled={page >= pages}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </button>
+            </nav>
+          )}
+        </section>
+      </div>
       <dialog
-        className="activity-dialog"
+        className="activity-dialog notification-slide"
         ref={dialog}
         aria-labelledby="activity-title"
         onClick={(event) => {
@@ -237,6 +241,7 @@ export function NotificationFeed({ items }: { items: ActivityItem[] }) {
                 </div>
               ))}
             </dl>
+            <NotificationRecord key={selected.id} href={selected.href} />
             {selected.href && (
               <Link className="button" href={selected.href}>
                 Open related record <ArrowUpRight size={16} />

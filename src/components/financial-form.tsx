@@ -31,7 +31,10 @@ export function FinancialForm({
   const [message, submit, pending] = useActionState(
     async (previous: string, form: FormData) => {
       const result = await financialAction(previous, form);
-      if (result === "Saved successfully.") await onSuccess?.();
+      if (result === "Saved successfully.") {
+        await onSuccess?.();
+        window.dispatchEvent(new Event("billing-updated"));
+      }
       return result;
     },
     "",
@@ -114,6 +117,11 @@ export function FinancialForm({
               )}
             </strong>
           </p>
+          <p className="muted">
+            After confirmation, unallocated credit is applied automatically when
+            the next invoice in this currency is issued. Reducing an allocation
+            keeps the remaining balance on this invoice unpaid.
+          </p>
         </>
       )}
       {needsReason && (
@@ -187,7 +195,10 @@ export function FinancialForm({
         </label>
       )}
       {!review ? (
-        <button className="secondary" onClick={() => setReview(true)}>
+        <button
+          className={action === "issue_invoice" ? "" : "secondary"}
+          onClick={() => setReview(true)}
+        >
           Review {label.toLowerCase()}
         </button>
       ) : (

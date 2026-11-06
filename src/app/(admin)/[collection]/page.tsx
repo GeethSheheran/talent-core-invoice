@@ -7,6 +7,7 @@ import Link from "@/components/navigation-link";
 import { notFound, redirect } from "next/navigation";
 import {
   allRows,
+  balances,
   listRecords,
   recordLoadMessage,
   tableMap,
@@ -47,7 +48,15 @@ export default async function ListPage({
         </Link>
       </section>
     );
-  const data = result.data;
+  const currentBalances = collection === "invoices" ? await balances() : [];
+  const data =
+    collection === "invoices"
+      ? result.data.map((row) => ({
+          ...row,
+          outstanding: currentBalances.find((balance) => balance.id === row.id)
+            ?.outstanding,
+        }))
+      : result.data;
   if (collection === "payments") {
     const payments = (data as unknown as Tables<"payments">[])
       .map(
@@ -80,9 +89,17 @@ export default async function ListPage({
       <>
         <div className="heading">
           <h1>Payments</h1>
-          <Link className="button" href="/payments/new">
-            + Record payment
-          </Link>
+          <div className="actions">
+            <Link
+              className="button secondary"
+              href="/settings?section=business#bank_details"
+            >
+              Payment details
+            </Link>
+            <Link className="button" href="/payments/new">
+              + Record payment
+            </Link>
+          </div>
         </div>
         <PaymentsList
           rows={payments}

@@ -1,3 +1,7 @@
+import { Document } from "@root/templates/documents/document";
+import { DocumentThumbnail } from "@/components/document-thumbnail";
+import { snapshotSchema } from "@/lib/documents/snapshots";
+import { brandSnapshot } from "@/lib/documents/brand";
 import Link from "@/components/navigation-link";
 import { CompanyDetail } from "@/components/company-detail";
 import type { Tables } from "@/lib/db/database.types";
@@ -84,22 +88,44 @@ export default async function DetailPage({
     ]);
   const names = Object.fromEntries(companies.map((c) => [c.id, c.name]));
   const current = balanceRows.find((i) => i.id === id);
+  const invoiceLines =
+    collection === "invoices"
+      ? await allRows("invoice_items", undefined, { invoice_id: id })
+      : [];
+  const previewSnapshot =
+    collection === "invoices"
+      ? snapshotSchema.parse(
+          r.snapshot || {
+            kind: "invoice",
+            invoice: r,
+            company: companies.find((c) => c.id === r.company_id),
+            business: (await allRows("settings")).find(
+              (s) => s.id === "business",
+            )?.data,
+            brand: await brandSnapshot(),
+            items: invoiceLines,
+            references: [],
+          },
+        )
+      : null;
   return (
     <>
       <div className="heading">
         <div>
-          <div className="eyebrow">
-            <Link
-              href={
-                collection === "projects"
-                  ? "/companies/" + r.company_id + "?section=projects"
-                  : "/" + collection
-              }
-            >
-              {collection === "projects" ? "Agreed services" : collection}
-            </Link>{" "}
-            / Details
-          </div>
+          {collection !== "invoices" && (
+            <div className="eyebrow">
+              <Link
+                href={
+                  collection === "projects"
+                    ? "/companies/" + r.company_id + "?section=projects"
+                    : "/" + collection
+                }
+              >
+                {collection === "projects" ? "Agreed services" : collection}
+              </Link>{" "}
+              / Details
+            </div>
+          )}
           <h1>{title}</h1>
           <div className="actions">
             <StatusBadge state={state} />
@@ -133,77 +159,101 @@ export default async function DetailPage({
           )}
         </div>
       </div>
-      <section className="card" id="overview">
-        <h2>Overview</h2>
-        <dl className="detail-list">
-          {Object.entries(r)
-            .filter(
-              ([key, value]) =>
-                [
-                  "code",
-                  "email",
-                  "address",
-                  "contact",
-                  "currency",
-                  "terms_days",
-                  "scope",
-                  "due_date",
-                  "period",
-                  "kind",
-                  "received_on",
-                  "method",
-                  "reference",
-                  "billing_day",
-                  "repeat",
-                  "reminder_days",
-                  "incurred_on",
-                  "description",
-                  "starts_on",
-                  "ends_on",
-                  "notes",
-                ].includes(key) && value != null,
-            )
-            .map(([key, value]) => (
-              <div key={key} style={{ display: "contents" }}>
-                <dt>{key.replaceAll("_", " ")}</dt>
-                <dd>{String(value) || "—"}</dd>
-              </div>
-            ))}
-          {["total", "amount", "price", "advance"]
-            .filter((k) => typeof r[k] === "number")
-            .map((k) => (
-              <div key={k} style={{ display: "contents" }}>
-                <dt>{k === "total" ? "New charges" : k}</dt>
+      <section
+        className={`card ${previewSnapshot ? "invoice-overview-layout" : ""}`}
+        id="overview"
+      >
+        <div className="invoice-overview-facts">
+          <h2>Overview</h2>
+          <dl className="detail-list">
+            {Object.entries(r)
+              .filter(
+                ([key, value]) =>
+                  [
+                    "code",
+                    "email",
+                    "address",
+                    "contact",
+                    "currency",
+                    "terms_days",
+                    "scope",
+                    "due_date",
+                    "period",
+                    "kind",
+                    "received_on",
+                    "method",
+                    "reference",
+                    "billing_day",
+                    "repeat",
+                    "reminder_days",
+                    "incurred_on",
+                    "description",
+                    "starts_on",
+                    "ends_on",
+                    "notes",
+                  ].includes(key) && value != null,
+              )
+              .map(([key, value]) => (
+                <div key={key} style={{ display: "contents" }}>
+                  <dt>{key.replaceAll("_", " ")}</dt>
+                  <dd>{String(value) || "—"}</dd>
+                </div>
+              ))}
+            {["total", "amount", "price", "advance"]
+              .filter((k) => typeof r[k] === "number")
+              .map((k) => (
+                <div key={k} style={{ display: "contents" }}>
+                  <dt>{k === "total" ? "New charges" : k}</dt>
+                  <dd>
+                    <strong>{formatMoney(Number(r[k]), currency)}</strong>
+                  </dd>
+                </div>
+              ))}
+            {current && (
+              <>
+                <dt>Live outstanding</dt>
                 <dd>
-                  <strong>{formatMoney(Number(r[k]), currency)}</strong>
+                  <strong>{formatMoney(current.outstanding, currency)}</strong>
                 </dd>
-              </div>
-            ))}
-          {current && (
-            <>
-              <dt>Live outstanding</dt>
-              <dd>
-                <strong>{formatMoney(current.outstanding, currency)}</strong>
-              </dd>
-            </>
-          )}
-        </dl>
+              </>
+            )}
+            {previewSnapshot && (
+              <>
+                <dt>Services</dt>
+                <dd>
+                  {invoiceLines.filter((line) => !line.expense_id).length}
+                </dd>
+                <dt>Expenses</dt>
+                <dd>
+                  {
+                    invoiceLines.filter((line) => Boolean(line.expense_id))
+                      .length
+                  }
+                </dd>
+                <dt>Tax</dt>
+                <dd>{formatMoney(Number(r.tax || 0), currency)}</dd>
+              </>
+            )}
+          </dl>
+        </div>
+        {previewSnapshot && (
+          <aside className="invoice-preview-card">
+            <Link
+              href={`/invoices/${id}/preview`}
+              aria-label="Open invoice document preview"
+            >
+              <DocumentThumbnail>
+                <Document snapshot={previewSnapshot} />
+              </DocumentThumbnail>
+            </Link>
+          </aside>
+        )}
       </section>
       {collection === "expenses" && Boolean(r.invoice_id) && (
         <p className="notice">
           Included on{" "}
           <Link href={"/invoices/" + r.invoice_id}>this invoice</Link>. Attached
           expenses are preserved with the invoice.
-        </p>
-      )}
-      {collection === "invoices" && Boolean(r.agreement_id) && (
-        <p>
-          <Link
-            className="button secondary"
-            href={"/agreements/" + r.agreement_id}
-          >
-            Manage recurring schedule
-          </Link>
         </p>
       )}
       {collection !== "invoices" && files.length > 0 && (

@@ -10,7 +10,12 @@ export default async function Preview({
   params: Promise<{ collection: string; id: string }>;
 }) {
   const { collection, id } = await params;
-  if (collection !== "invoices" && collection !== "proposals") notFound();
+  if (
+    collection !== "invoices" &&
+    collection !== "proposals" &&
+    collection !== "payments"
+  )
+    notFound();
   const record = await oneRow(collection, id);
   if (!record) notFound();
   const [company, settings] = await Promise.all([
@@ -18,12 +23,20 @@ export default async function Preview({
     allRows("settings"),
   ]);
   if (!company) notFound();
-  const kind = collection === "invoices" ? "invoice" : "proposal";
+  const kind =
+    collection === "invoices"
+      ? "invoice"
+      : collection === "payments"
+        ? "receipt"
+        : "proposal";
   const snapshot = record.snapshot || {
     kind,
-    [kind]: record,
+    [kind === "receipt" ? "payment" : kind]: record,
     company,
-    business: settings[0]?.data,
+    business: settings.find((s) => s.id === "business")?.data,
+    ...(kind === "receipt"
+      ? { allocations: [], unallocated: "amount" in record ? record.amount : 0 }
+      : {}),
     brand: await brandSnapshot(),
     items:
       kind === "invoice"
@@ -37,13 +50,15 @@ export default async function Preview({
         <div>
           <div className="eyebrow">Document preview</div>
           <h1>
-            {record.state === "draft"
+            {["draft", "pending"].includes(String(record.state))
               ? "Draft · not issued"
               : "Issued document"}
           </h1>
           <p>
-            {record.state === "draft"
-              ? "Earlier balances are captured when the invoice is issued."
+            {["draft", "pending"].includes(String(record.state))
+              ? kind === "receipt"
+                ? "Draft receipt — payment has not been confirmed. Allocations are recorded at confirmation."
+                : "Earlier balances are captured when the invoice is issued."
               : "This preview uses the original issue snapshot."}
           </p>
         </div>
